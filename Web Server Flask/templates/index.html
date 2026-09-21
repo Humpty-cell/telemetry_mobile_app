@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recorrido en tiempo real</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="mapa"></div>
+
+    <div id="panel">
+        <h1>Recorrido del vehículo</h1>
+        <p>Lat: <span id="lat">-</span></p>
+        <p>Long: <span id="lon">-</span></p>
+        <p>Fecha: <span id="fecha">-</span></p>
+        <p>Hora: <span id="hora">-</span></p>
+        <p>Servidor: <span id="servidor">-</span></p>
+        <button id="btn-pausa" onclick="togglePausa()">Pausar</button>
+        <button id="btn-borrar" onclick="borrarTrazado()">Borrar trazado</button>
+        <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
+    </div>
+
+    <div id="panel-historico">
+        <strong>Ver recorrido pasado</strong>
+        <label for="input-desde">Desde</label>
+        <input type="datetime-local" id="input-desde">
+        <label for="input-hasta">Hasta</label>
+        <input type="datetime-local" id="input-hasta">
+        <div>
+            <button id="btn-buscar-historico" onclick="buscarHistorico()">Buscar</button>
+            <button id="btn-volver-vivo" onclick="volverATiempoReal()">Volver a en vivo</button>
+        </div>
+        <div id="resultado-historico"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
