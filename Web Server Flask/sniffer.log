@@ -1,0 +1,3 @@
+[sniffer] conexión a PostgreSQL OK (172.31.31.134:5432/coordenadas)
+[sniffer] escuchando UDP en 0.0.0.0:5000 ... (Ctrl+C para salir)
+[sniffer] identificándose como: Yamith_Server
