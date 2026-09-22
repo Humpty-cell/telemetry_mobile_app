@@ -23,4 +23,5 @@ jobs:
             cd ~/telemetry_mobile_app
             git fetch origin
             git reset --hard origin/main
+            cd ~/telemetry_mobile_app/.github/workflows
             bash actualizar.sh
