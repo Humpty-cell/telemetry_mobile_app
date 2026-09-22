@@ -20,7 +20,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets[format('EC2_{0}_KEY', matrix.instance)] }}
           script: |
-            cd ~/Mobile-app-and-web-server-for-GPS-track
+            cd ~/telemetry_mobile_app
             git fetch origin
             git reset --hard origin/main
             bash actualizar.sh
