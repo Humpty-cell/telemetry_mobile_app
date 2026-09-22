@@ -1,0 +1,26 @@
+name: Deploy a EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance: [1, 2, 3, 4]
+      fail-fast: false   # si una instancia falla, las demás igual se actualizan
+    steps:
+      - name: Deploy a EC2-${{ matrix.instance }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets[format('EC2_{0}_HOST', matrix.instance)] }}
+          username: ubuntu
+          key: ${{ secrets[format('EC2_{0}_KEY', matrix.instance)] }}
+          script: |
+            cd ~/Mobile-app-and-web-server-for-GPS-track
+            git fetch origin
+            git reset --hard origin/main
+            bash actualizar.sh
