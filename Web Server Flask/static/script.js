@@ -104,6 +104,9 @@ async function buscarHistorico() {
     const desde = document.getElementById('input-desde').value;
     const hasta = document.getElementById('input-hasta').value;
     const resultadoDiv = document.getElementById('resultado-historico');
+    const contenedorSlider = document.getElementById('contenedor-slider');
+    const slider = document.getElementById('slider-historico');
+    const horaSlider = document.getElementById('hora-slider');
 
     if (!desde || !hasta) {
         resultadoDiv.textContent = 'Completa ambas fechas.';
@@ -111,6 +114,7 @@ async function buscarHistorico() {
     }
 
     resultadoDiv.textContent = 'Buscando...';
+    contenedorSlider.style.display = 'none';
 
     const respuesta = await fetch(`/historico?desde=${desde}&hasta=${hasta}`);
     const datos = await respuesta.json();
@@ -126,19 +130,46 @@ async function buscarHistorico() {
         return;
     }
 
-    // Entrar a modo histórico: pausamos el auto-refresco en vivo
-    // para que las dos rutas no se mezclen visualmente.
     if (!enModoHistorico) {
         enModoHistorico = true;
         if (!pausado) togglePausa();
     }
 
+    // Mostrar recorrido completo inicialmente
     const puntos = datos.map(p => [p.lat, p.lon]);
     lineaHistorico.setLatLngs(puntos);
     mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 
     resultadoDiv.textContent = `${datos.length} puntos encontrados · ` +
         `de ${datos[0].hora} a ${datos[datos.length - 1].hora}`;
+
+    // Configurar slider
+    slider.max = datos.length - 1;
+    slider.value = datos.length - 1;
+    contenedorSlider.style.display = 'block';
+
+    slider.oninput = function() {
+        const idx = parseInt(this.value);
+        const punto = datos[idx];
+
+        // Dibujar recorrido progresivo
+        const puntosHasta = datos.slice(0, idx + 1).map(p => [p.lat, p.lon]);
+        lineaHistorico.setLatLngs(puntosHasta);
+
+        // Mover marcador
+        marcador.setLatLng([punto.lat, punto.lon]);
+        mapa.panTo([punto.lat, punto.lon]);
+
+        // Actualizar panel izquierdo
+        document.getElementById('lat').textContent = punto.lat;
+        document.getElementById('lon').textContent = punto.lon;
+        document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
+	document.getElementById('hora').textContent = punto.hora.split(' ')[1];
+        document.getElementById('servidor').textContent = punto.servidor ?? '-';
+
+        // Mostrar hora bajo el slider
+        horaSlider.textContent = punto.hora;
+    };
 }
 
 function volverATiempoReal() {
@@ -166,5 +197,13 @@ async function inicializar() {
 
 window.addEventListener('resize', () => mapa.invalidateSize());
 setTimeout(() => mapa.invalidateSize(), 300);
+
+function centrarUbicacion() {
+    const lat = parseFloat(document.getElementById('lat').textContent);
+    const lon = parseFloat(document.getElementById('lon').textContent);
+    if (!isNaN(lat) && !isNaN(lon)) {
+        mapa.setView([lat, lon], 16);
+    }
+}
 
 inicializar();
