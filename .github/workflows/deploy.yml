@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        instance: [1]
+        instance: [1,2,3]
       fail-fast: false   # si una instancia falla, las demás igual se actualizan
     steps:
       - name: Deploy a EC2-${{ matrix.instance }}
