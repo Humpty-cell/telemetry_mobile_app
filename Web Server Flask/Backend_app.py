@@ -11,7 +11,7 @@ from flask import Flask, jsonify, render_template, request
 
 import db
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='Frontend')
 
 
 @app.route("/actual")
