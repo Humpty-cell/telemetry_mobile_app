@@ -9,6 +9,7 @@ función de db.py y devuelve el resultado".
 
 from flask import Flask, jsonify, render_template, request
 
+import os
 import db
 
 app = Flask(__name__, template_folder='Frontend')
@@ -72,7 +73,8 @@ def historico():
 
 @app.route("/")
 def pagina_principal():
-    return render_template("index.html")
+    titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")
+    return render_template("index.html", titulo_pestana=titulo_pestana)
 
 
 if __name__ == "__main__":
