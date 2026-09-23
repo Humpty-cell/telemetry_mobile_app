@@ -1,4 +1,6 @@
 #!/bin/bash
+cd "$(dirname "$0")/Web Server Flask" || cd "$HOME/telemetry_mobile_app/Web Server Flask"
+
 echo "==> [1/3] Actualizando permisos de ejecución..."
 chmod +x iniciar.sh
 
