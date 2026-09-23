@@ -23,6 +23,6 @@ jobs:
             cd ~/telemetry_mobile_app
             git fetch origin
             git reset --hard origin/main
-            cd "$HOME/telemetry_mobile_app/Web Server Flask"
+            cd /telemetry_mobile_app/Web Server Flask
             chmod +x iniciar.sh
             bash iniciar.sh
