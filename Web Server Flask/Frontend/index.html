@@ -33,9 +33,14 @@
             <button id="btn-buscar-historico" onclick="buscarHistorico()">Buscar</button>
             <button id="btn-volver-vivo" onclick="volverATiempoReal()">Volver a en vivo</button>
         </div>
-        <div id="resultado-historico"></div>
+	<div id="resultado-historico"></div>
+	<div id="contenedor-slider" style="display:none; margin-top:12px;">
+	    <input type="range" id="slider-historico" min="0" max="100" value="0" 
+	           style="width:100%; cursor:pointer;">
+	    <div id="hora-slider" style="text-align:center; font-size:0.75rem; color:#444; margin-top:4px;"></div>
+	</div>
     </div>
-
+    <button id="btn-centrar" onclick="centrarUbicacion()" title="Centrar ubicación">📍</button>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
