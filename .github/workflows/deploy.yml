@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        instance: [1,2,3]
-      fail-fast: false
+        instance: [1]
+      fail-fast: false   # si una instancia falla, las demás igual se actualizan
     steps:
       - name: Deploy a EC2-${{ matrix.instance }}
         uses: appleboy/ssh-action@v1.0.3
@@ -23,6 +23,5 @@ jobs:
             cd ~/telemetry_mobile_app
             git fetch origin
             git reset --hard origin/main
-            cd /telemetry_mobile_app/Web Server Flask
-            chmod +x iniciar.sh
-            bash iniciar.sh
+            cd ~/telemetry_mobile_app/.github/workflows
+            bash actualizar.sh
