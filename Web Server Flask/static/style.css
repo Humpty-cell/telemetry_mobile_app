@@ -142,3 +142,8 @@ html, body {
     font-size: 1.4rem;
     cursor: pointer;
 }
+
+#btn-centrar.activo {
+    background: #1D9E75;
+    color: white;
+}

@@ -203,6 +203,13 @@ async function inicializar() {
 window.addEventListener('resize', () => mapa.invalidateSize());
 setTimeout(() => mapa.invalidateSize(), 300);
 
+mapa.on('dragstart', () => {
+    if (seguimientoActivo) {
+        seguimientoActivo = false;
+        document.getElementById('btn-centrar').classList.remove('activo');
+    }
+});
+
 function centrarUbicacion() {
     seguimientoActivo = !seguimientoActivo;
 
