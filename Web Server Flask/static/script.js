@@ -37,8 +37,8 @@ async function actualizarDato() {
 
 if (datos.lat !== null && datos.lon !== null) {
     marcador.setLatLng([datos.lat, datos.lon]);
-    if (seguimientoActivo) {
-        mapa.setView([datos.lat, datos.lon], mapa.getZoom());
+    if (autocentrado) {
+        mapa.panTo([datos.lat, datos.lon]);
     }
 }
 
@@ -224,4 +224,17 @@ function centrarUbicacion() {
         }
     }
 }
+
+let autocentrado = true;
+
+function toggleAutocentrar() {
+    autocentrado = !autocentrado;
+    const boton = document.getElementById('btn-autocentrar');
+    if (autocentrado) {
+        boton.classList.add('activo');
+    } else {
+        boton.classList.remove('activo');
+    }
+}
+
 inicializar();
