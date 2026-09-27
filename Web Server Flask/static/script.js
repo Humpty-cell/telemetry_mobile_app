@@ -10,6 +10,8 @@ const linea = L.polyline([], { color: '#1D9E75', weight: 4 }).addTo(mapa);
 
 let ultimoIdCargado = 0;
 let puntosRecorrido = [];
+let seguimientoActivo = false;
+
 
 async function cargarRecorrido() {
     const respuesta = await fetch('/recorrido?desde=' + ultimoIdCargado);
@@ -33,9 +35,12 @@ async function actualizarDato() {
     document.getElementById('hora').textContent = datos.hora;
     document.getElementById('servidor').textContent = datos.servidor;
 
-    if (datos.lat !== null && datos.lon !== null) {
-        marcador.setLatLng([datos.lat, datos.lon]);
+if (datos.lat !== null && datos.lon !== null) {
+    marcador.setLatLng([datos.lat, datos.lon]);
+    if (seguimientoActivo) {
+        mapa.setView([datos.lat, datos.lon], mapa.getZoom());
     }
+}
 
     return datos;
 }
@@ -198,12 +203,25 @@ async function inicializar() {
 window.addEventListener('resize', () => mapa.invalidateSize());
 setTimeout(() => mapa.invalidateSize(), 300);
 
+mapa.on('dragstart', () => {
+    if (seguimientoActivo) {
+        seguimientoActivo = false;
+        document.getElementById('btn-centrar').classList.remove('activo');
+    }
+});
+
 function centrarUbicacion() {
-    const lat = parseFloat(document.getElementById('lat').textContent);
-    const lon = parseFloat(document.getElementById('lon').textContent);
-    if (!isNaN(lat) && !isNaN(lon)) {
-        mapa.setView([lat, lon], 16);
+    seguimientoActivo = !seguimientoActivo;
+
+    const boton = document.getElementById('btn-centrar');
+    boton.classList.toggle('activo', seguimientoActivo);
+
+    if (seguimientoActivo) {
+        const lat = parseFloat(document.getElementById('lat').textContent);
+        const lon = parseFloat(document.getElementById('lon').textContent);
+        if (!isNaN(lat) && !isNaN(lon)) {
+            mapa.setView([lat, lon], mapa.getZoom());
+        }
     }
 }
-
 inicializar();
