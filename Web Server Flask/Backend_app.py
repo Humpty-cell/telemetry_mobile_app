@@ -110,6 +110,19 @@ def historico_desde():
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)
 
+
+@app.route("/ruta_alrededor")
+def ruta_alrededor():
+    try:
+        ts_fix = int(request.args.get("ts_fix"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "ts_fix es requerido"}), 400
+    try:
+        puntos = db.obtener_ruta_alrededor(ts_fix)
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")

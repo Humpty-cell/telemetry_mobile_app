@@ -137,6 +137,7 @@ def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float
         puntos.append({
             "lat": lat,
             "lon": lon,
+            "ts_fix": ts_fix,
             "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S"),
         })
     return puntos
@@ -177,4 +178,28 @@ def obtener_historico_desde(desde_ms: int, limite: int = 10000) -> list[dict]:
     for lat, lon, ts_fix in filas:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
         puntos.append({"lat": lat, "lon": lon, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
+    return puntos
+
+def obtener_ruta_alrededor(ts_fix_ms: int, minutos: int = 30) -> list[dict]:
+    """Devuelve puntos desde 30 min antes hasta 30 min después de un timestamp."""
+    margen_ms = minutos * 60 * 1000
+    desde_ms = ts_fix_ms - margen_ms
+    hasta_ms = ts_fix_ms + margen_ms
+
+    conexion = conectar_bd()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                "SELECT lat, lon, ts_fix FROM coordenadas "
+                "WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC",
+                (desde_ms, hasta_ms),
+            )
+            filas = cursor.fetchall()
+    finally:
+        conexion.close()
+
+    puntos = []
+    for lat, lon, ts_fix in filas:
+        momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
+        puntos.append({"lat": lat, "lon": lon, "ts_fix": ts_fix, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos

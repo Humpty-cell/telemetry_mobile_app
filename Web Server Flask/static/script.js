@@ -284,7 +284,17 @@ mapa.on('click', async function(e) {
             .setContent('El vehículo no pasó por aquí')
             .openOn(mapa);
     } else {
-        const lista = datos.map(p => `<div>📍 ${p.hora}</div>`).join('');
+        const lista = datos.map(p => 
+            `<div style="padding:4px 0; border-bottom:1px solid #eee;">
+                📍 ${p.hora}
+                <button onclick="verRutaAlrededor(${p.ts_fix})" 
+                    style="margin-left:6px; padding:2px 8px; border:none; border-radius:4px; 
+                    background:#E07B39; color:white; cursor:pointer; font-size:0.75rem;">
+                    Ver ruta
+                </button>
+            </div>`
+        ).join('');
+
         popupBusqueda = L.popup({ maxHeight: 200 })
             .setLatLng(e.latlng)
             .setContent(`<strong>Pasó por aquí:</strong><br>${lista}`)
@@ -337,6 +347,17 @@ async function buscarHistoricoDesde() {
 
     const puntos = datos.map(p => [p.lat, p.lon]);
     lineaHistorico.setLatLngs(puntos);
+}
+
+async function verRutaAlrededor(ts_fix) {
+    const respuesta = await fetch(`/ruta_alrededor?ts_fix=${ts_fix}`);
+    const datos = await respuesta.json();
+
+    if (datos.length === 0) return;
+
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+    mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 }
 
 inicializar();
