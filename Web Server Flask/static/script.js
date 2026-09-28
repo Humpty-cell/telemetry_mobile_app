@@ -241,21 +241,20 @@ let modosBusquedaUbicacion = false;
 let popupBusqueda = null;
 
 function toggleBuscarUbicacion() {
-
-    const msg = document.getElementById('msg-buscar-ubicacion');
-    msg.style.display = modosBusquedaUbicacion ? 'block' : 'none';
-    
     modosBusquedaUbicacion = !modosBusquedaUbicacion;
     const boton = document.getElementById('btn-buscar-ubicacion');
+    const msg = document.getElementById('msg-buscar-ubicacion');
 
     if (modosBusquedaUbicacion) {
         boton.style.background = '#E07B39';
         boton.style.color = 'white';
         mapa.getContainer().style.cursor = 'crosshair';
+        msg.style.display = 'block';
     } else {
         boton.style.background = '';
         boton.style.color = '';
         mapa.getContainer().style.cursor = '';
+        msg.style.display = 'none';
         if (popupBusqueda) {
             popupBusqueda.remove();
             popupBusqueda = null;
