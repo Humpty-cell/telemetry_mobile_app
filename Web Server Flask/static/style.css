@@ -169,3 +169,15 @@ html, body {
     background: #1D9E75;
     color: white;
 }
+
+#btn-buscar-ubicacion {
+    margin-top: 10px;
+    margin-right: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    background: #6A5ACD;
+    color: white;
+}
