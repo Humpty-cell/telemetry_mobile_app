@@ -21,6 +21,8 @@
         <button id="btn-pausa" onclick="togglePausa()">Pausar</button>
         <button id="btn-borrar" onclick="borrarTrazado()">Borrar trazado</button>
         <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
+        <button id="btn-buscar-ubicacion" onclick="toggleBuscarUbicacion()">Buscar cuándo estuvo el vehículo por:</button>
+        <div id="msg-buscar-ubicacion" style="display:none; font-size:0.78rem; color:#555; margin-top:4px;">Por favor selecciona una ubicación en el mapa</div>
     </div>
 
     <div id="panel-historico">
@@ -40,6 +42,7 @@
 	    <div id="hora-slider" style="text-align:center; font-size:0.75rem; color:#444; margin-top:4px;"></div>
 	</div>
     </div>
+    <button id="btn-autocentrar" class="activo" onclick="toggleAutocentrar()" title="Auto-centrado">Auto-centrado</button>
     <button id="btn-centrar" onclick="centrarUbicacion()" title="Centrar ubicación">𖦏</button>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

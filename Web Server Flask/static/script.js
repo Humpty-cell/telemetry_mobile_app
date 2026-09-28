@@ -37,8 +37,8 @@ async function actualizarDato() {
 
 if (datos.lat !== null && datos.lon !== null) {
     marcador.setLatLng([datos.lat, datos.lon]);
-    if (seguimientoActivo) {
-        mapa.setView([datos.lat, datos.lon], mapa.getZoom());
+    if (autocentrado) {
+        mapa.panTo([datos.lat, datos.lon]);
     }
 }
 
@@ -224,4 +224,68 @@ function centrarUbicacion() {
         }
     }
 }
+
+let autocentrado = true;
+
+function toggleAutocentrar() {
+    autocentrado = !autocentrado;
+    const boton = document.getElementById('btn-autocentrar');
+    if (autocentrado) {
+        boton.classList.add('activo');
+    } else {
+        boton.classList.remove('activo');
+    }
+}
+
+let modosBusquedaUbicacion = false;
+let popupBusqueda = null;
+
+function toggleBuscarUbicacion() {
+    modosBusquedaUbicacion = !modosBusquedaUbicacion;
+    const boton = document.getElementById('btn-buscar-ubicacion');
+    const msg = document.getElementById('msg-buscar-ubicacion');
+
+    if (modosBusquedaUbicacion) {
+        boton.style.background = '#E07B39';
+        boton.style.color = 'white';
+        mapa.getContainer().style.cursor = 'crosshair';
+        msg.style.display = 'block';
+    } else {
+        boton.style.background = '';
+        boton.style.color = '';
+        mapa.getContainer().style.cursor = '';
+        msg.style.display = 'none';
+        if (popupBusqueda) {
+            popupBusqueda.remove();
+            popupBusqueda = null;
+        }
+    }
+}
+
+mapa.on('click', async function(e) {
+    if (!modosBusquedaUbicacion) return;
+
+    const { lat, lng } = e.latlng;
+    const respuesta = await fetch(`/buscar_ubicacion?lat=${lat}&lon=${lng}`);
+    const datos = await respuesta.json();
+
+    if (popupBusqueda) {
+        popupBusqueda.remove();
+        popupBusqueda = null;
+    }
+
+    if (datos.length === 0) {
+        popupBusqueda = L.popup()
+            .setLatLng(e.latlng)
+            .setContent('El vehículo no pasó por aquí')
+            .openOn(mapa);
+    } else {
+        const lista = datos.map(p => `<div>📍 ${p.hora}</div>`).join('');
+        popupBusqueda = L.popup({ maxHeight: 200 })
+            .setLatLng(e.latlng)
+            .setContent(`<strong>Pasó por aquí:</strong><br>${lista}`)
+            .openOn(mapa);
+    }
+});
+
 inicializar();

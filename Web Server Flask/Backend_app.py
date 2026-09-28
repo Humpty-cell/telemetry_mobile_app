@@ -70,6 +70,20 @@ def historico():
 
     return jsonify(puntos)
 
+@app.route("/buscar_ubicacion")
+def buscar_ubicacion():
+    try:
+        lat = float(request.args.get("lat"))
+        lon = float(request.args.get("lon"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "lat y lon son requeridos"}), 400
+
+    try:
+        resultados = db.buscar_por_ubicacion(lat, lon)
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+
+    return jsonify(resultados)
 
 @app.route("/")
 def pagina_principal():

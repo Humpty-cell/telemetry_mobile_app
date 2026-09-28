@@ -106,3 +106,37 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
             "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S"),
         })
     return puntos
+
+def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float = 7.0) -> list[dict]:
+    """Busca puntos dentro de un radio en metros usando la fórmula de Haversine en SQL."""
+    conexion = conectar_bd()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT lat, lon, ts_fix
+                FROM coordenadas
+                WHERE (
+                    6371000 * acos(
+                        cos(radians(%s)) * cos(radians(lat)) *
+                        cos(radians(lon) - radians(%s)) +
+                        sin(radians(%s)) * sin(radians(lat))
+                    )
+                ) <= %s
+                ORDER BY ts_fix ASC
+                """,
+                (lat_click, lon_click, lat_click, radio_metros),
+            )
+            filas = cursor.fetchall()
+    finally:
+        conexion.close()
+
+    puntos = []
+    for lat, lon, ts_fix in filas:
+        momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
+        puntos.append({
+            "lat": lat,
+            "lon": lon,
+            "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+    return puntos
