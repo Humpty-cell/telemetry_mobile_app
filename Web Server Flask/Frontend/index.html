@@ -28,7 +28,16 @@
                 <input type="checkbox" id="chk-historico-total" onchange="toggleHistoricoTotal()">
                 Mostrar recorrido histórico total
             </label>
+            <label style="font-size:0.78rem; color:#333; cursor:pointer; display:block; margin-top:6px;">
+                <input type="checkbox" id="chk-historico-desde" onchange="toggleHistoricoDesde()">
+                Mostrar recorrido histórico desde:
+            </label>
+            <div id="contenedor-desde" style="display:none; margin-top:4px;">
+                <input type="datetime-local" id="input-historico-desde" style="width:100%; font-size:0.75rem;">
+                <button onclick="buscarHistoricoDesde()" style="margin-top:4px; width:100%; padding:4px; border:none; border-radius:4px; background:#3B7DD8; color:white; font-weight:bold; cursor:pointer;">Ver recorrido</button>
+            </div>
         </div>
+
     </div>
 
     <div id="panel-historico">

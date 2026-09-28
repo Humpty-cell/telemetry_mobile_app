@@ -93,6 +93,23 @@ def historico_total():
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)
 
+@app.route("/historico_desde")
+def historico_desde():
+    from datetime import datetime
+    desde_str = request.args.get("desde")
+    if not desde_str:
+        return jsonify({"error": "Debes indicar 'desde'"}), 400
+    try:
+        desde_dt = datetime.fromisoformat(desde_str).replace(tzinfo=db.ZONA_LOCAL)
+    except ValueError:
+        return jsonify({"error": "Formato de fecha/hora inválido"}), 400
+    desde_ms = int(desde_dt.timestamp() * 1000)
+    try:
+        puntos = db.obtener_historico_desde(desde_ms)
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")

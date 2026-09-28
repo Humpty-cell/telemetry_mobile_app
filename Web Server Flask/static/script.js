@@ -309,4 +309,23 @@ async function toggleHistoricoTotal() {
     lineaHistorico.setLatLngs(puntos);
 }
 
+function toggleHistoricoDesde() {
+    const activo = document.getElementById('chk-historico-desde').checked;
+    document.getElementById('contenedor-desde').style.display = activo ? 'block' : 'none';
+    if (!activo) lineaHistorico.setLatLngs([]);
+}
+
+async function buscarHistoricoDesde() {
+    const desde = document.getElementById('input-historico-desde').value;
+    if (!desde) return;
+
+    const respuesta = await fetch(`/historico_desde?desde=${desde}`);
+    const datos = await respuesta.json();
+
+    if (datos.length === 0) return;
+
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+}
+
 inicializar();
