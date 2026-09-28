@@ -161,14 +161,14 @@ def obtener_historico_total(limite: int = 10000) -> list[dict]:
         puntos.append({"lat": lat, "lon": lon, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos
 
-def obtener_historico_desde(desde_ms: int, limite: int = 10000) -> list[dict]:
-    """Devuelve todos los puntos desde un timestamp hasta ahora."""
+def obtener_historico_desde(desde_ms: int, hasta_ms: int, limite: int = 10000) -> list[dict]:
+    """Devuelve todos los puntos entre desde_ms y hasta_ms."""
     conexion = conectar_bd()
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas WHERE ts_fix >= %s ORDER BY ts_fix ASC LIMIT %s",
-                (desde_ms, limite),
+                "SELECT lat, lon, ts_fix FROM coordenadas WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
+                (desde_ms, hasta_ms, limite),
             )
             filas = cursor.fetchall()
     finally:

@@ -97,15 +97,18 @@ def historico_total():
 def historico_desde():
     from datetime import datetime
     desde_str = request.args.get("desde")
-    if not desde_str:
-        return jsonify({"error": "Debes indicar 'desde'"}), 400
+    hasta_str = request.args.get("hasta")
+    if not desde_str or not hasta_str:
+        return jsonify({"error": "Debes indicar 'desde' y 'hasta'"}), 400
     try:
         desde_dt = datetime.fromisoformat(desde_str).replace(tzinfo=db.ZONA_LOCAL)
+        hasta_dt = datetime.fromisoformat(hasta_str).replace(tzinfo=db.ZONA_LOCAL)
     except ValueError:
         return jsonify({"error": "Formato de fecha/hora inválido"}), 400
     desde_ms = int(desde_dt.timestamp() * 1000)
+    hasta_ms = int(hasta_dt.timestamp() * 1000)
     try:
-        puntos = db.obtener_historico_desde(desde_ms)
+        puntos = db.obtener_historico_desde(desde_ms, hasta_ms)
     except Exception as error:
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)

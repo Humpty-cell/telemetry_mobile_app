@@ -330,6 +330,12 @@ function toggleHistoricoDesde() {
         document.getElementById('chk-historico-total').checked = false;
         lineaHistorico.setLatLngs([]);
         document.getElementById('contenedor-desde').style.display = 'block';
+
+        // Limitar el máximo al momento actual
+        const ahora = aFormatoInput(new Date());
+        document.getElementById('input-historico-desde').max = ahora;
+        document.getElementById('input-historico-hasta').max = ahora;
+        document.getElementById('input-historico-hasta').value = ahora;
     } else {
         lineaHistorico.setLatLngs([]);
         document.getElementById('contenedor-desde').style.display = 'none';
@@ -338,9 +344,10 @@ function toggleHistoricoDesde() {
 
 async function buscarHistoricoDesde() {
     const desde = document.getElementById('input-historico-desde').value;
-    if (!desde) return;
+    const hasta = document.getElementById('input-historico-hasta').value;
+    if (!desde || !hasta) return;
 
-    const respuesta = await fetch(`/historico_desde?desde=${desde}`);
+    const respuesta = await fetch(`/historico_desde?desde=${desde}&hasta=${hasta}`);
     const datos = await respuesta.json();
 
     if (datos.length === 0) return;
