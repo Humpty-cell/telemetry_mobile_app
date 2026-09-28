@@ -107,7 +107,7 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
         })
     return puntos
 
-def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float = 10.0) -> list[dict]:
+def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float = 7.0) -> list[dict]:
     """Busca puntos dentro de un radio en metros usando la fórmula de Haversine en SQL."""
     conexion = conectar_bd()
     try:
