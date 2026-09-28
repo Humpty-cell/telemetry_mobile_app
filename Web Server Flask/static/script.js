@@ -292,27 +292,38 @@ mapa.on('click', async function(e) {
     }
 });
 
-async function toggleHistoricoTotal() {
+function toggleHistoricoTotal() {
     const activo = document.getElementById('chk-historico-total').checked;
-
-    if (!activo) {
+    
+    if (activo) {
+        document.getElementById('chk-historico-desde').checked = false;
+        document.getElementById('contenedor-desde').style.display = 'none';
         lineaHistorico.setLatLngs([]);
-        return;
+        toggleHistoricoTotalCargar();
+    } else {
+        lineaHistorico.setLatLngs([]);
     }
+}
 
+async function toggleHistoricoTotalCargar() {
     const respuesta = await fetch('/historico_total');
     const datos = await respuesta.json();
-
     if (datos.length === 0) return;
-
     const puntos = datos.map(p => [p.lat, p.lon]);
     lineaHistorico.setLatLngs(puntos);
 }
 
 function toggleHistoricoDesde() {
     const activo = document.getElementById('chk-historico-desde').checked;
-    document.getElementById('contenedor-desde').style.display = activo ? 'block' : 'none';
-    if (!activo) lineaHistorico.setLatLngs([]);
+    
+    if (activo) {
+        document.getElementById('chk-historico-total').checked = false;
+        lineaHistorico.setLatLngs([]);
+        document.getElementById('contenedor-desde').style.display = 'block';
+    } else {
+        lineaHistorico.setLatLngs([]);
+        document.getElementById('contenedor-desde').style.display = 'none';
+    }
 }
 
 async function buscarHistoricoDesde() {
