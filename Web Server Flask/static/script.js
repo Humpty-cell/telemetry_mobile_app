@@ -243,11 +243,8 @@ let popupBusqueda = null;
 function toggleBuscarUbicacion() {
 
     const msg = document.getElementById('msg-buscar-ubicacion');
-    if (modosBusquedaUbicacion) {
-        msg.style.display = 'block';
-    } else {
-        msg.style.display = 'none';
-    }
+    msg.style.display = modosBusquedaUbicacion ? 'block' : 'none';
+    
     modosBusquedaUbicacion = !modosBusquedaUbicacion;
     const boton = document.getElementById('btn-buscar-ubicacion');
 
