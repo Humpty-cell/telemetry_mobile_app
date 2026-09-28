@@ -250,11 +250,15 @@ function toggleBuscarUbicacion() {
         boton.style.color = 'white';
         mapa.getContainer().style.cursor = 'crosshair';
         msg.style.display = 'block';
+        document.getElementById('opciones-buscar').style.display = 'block';
     } else {
         boton.style.background = '';
         boton.style.color = '';
         mapa.getContainer().style.cursor = '';
         msg.style.display = 'none';
+        document.getElementById('opciones-buscar').style.display = 'none';
+        document.getElementById('chk-historico-total').checked = false;
+        lineaHistorico.setLatLngs([]);
         if (popupBusqueda) {
             popupBusqueda.remove();
             popupBusqueda = null;
@@ -287,5 +291,22 @@ mapa.on('click', async function(e) {
             .openOn(mapa);
     }
 });
+
+async function toggleHistoricoTotal() {
+    const activo = document.getElementById('chk-historico-total').checked;
+
+    if (!activo) {
+        lineaHistorico.setLatLngs([]);
+        return;
+    }
+
+    const respuesta = await fetch('/historico_total');
+    const datos = await respuesta.json();
+
+    if (datos.length === 0) return;
+
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+}
 
 inicializar();

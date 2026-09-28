@@ -23,6 +23,12 @@
         <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
         <button id="btn-buscar-ubicacion" onclick="toggleBuscarUbicacion()">Buscar cuándo estuvo el vehículo por:</button>
         <div id="msg-buscar-ubicacion" style="display:none; font-size:0.78rem; color:#555; margin-top:4px;">Por favor selecciona una ubicación en el mapa</div>
+        <div id="opciones-buscar" style="display:none; margin-top:6px;">
+            <label style="font-size:0.78rem; color:#333; cursor:pointer;">
+                <input type="checkbox" id="chk-historico-total" onchange="toggleHistoricoTotal()">
+                Mostrar recorrido histórico total
+            </label>
+        </div>
     </div>
 
     <div id="panel-historico">

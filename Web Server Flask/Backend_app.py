@@ -85,6 +85,14 @@ def buscar_ubicacion():
 
     return jsonify(resultados)
 
+@app.route("/historico_total")
+def historico_total():
+    try:
+        puntos = db.obtener_historico_total()
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")
