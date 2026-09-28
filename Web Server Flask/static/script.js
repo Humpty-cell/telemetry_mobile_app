@@ -250,11 +250,15 @@ function toggleBuscarUbicacion() {
         boton.style.color = 'white';
         mapa.getContainer().style.cursor = 'crosshair';
         msg.style.display = 'block';
+        document.getElementById('opciones-buscar').style.display = 'block';
     } else {
         boton.style.background = '';
         boton.style.color = '';
         mapa.getContainer().style.cursor = '';
         msg.style.display = 'none';
+        document.getElementById('opciones-buscar').style.display = 'none';
+        document.getElementById('chk-historico-total').checked = false;
+        lineaHistorico.setLatLngs([]);
         if (popupBusqueda) {
             popupBusqueda.remove();
             popupBusqueda = null;
@@ -280,12 +284,87 @@ mapa.on('click', async function(e) {
             .setContent('El vehículo no pasó por aquí')
             .openOn(mapa);
     } else {
-        const lista = datos.map(p => `<div>📍 ${p.hora}</div>`).join('');
+        const lista = datos.map(p => 
+            `<div style="padding:4px 0; border-bottom:1px solid #eee;">
+                📍 ${p.hora}
+                <button onclick="verRutaAlrededor(${p.ts_fix})" 
+                    style="margin-left:6px; padding:2px 8px; border:none; border-radius:4px; 
+                    background:#E07B39; color:white; cursor:pointer; font-size:0.75rem;">
+                    Ver ruta
+                </button>
+            </div>`
+        ).join('');
+
         popupBusqueda = L.popup({ maxHeight: 200 })
             .setLatLng(e.latlng)
             .setContent(`<strong>Pasó por aquí:</strong><br>${lista}`)
             .openOn(mapa);
     }
 });
+
+function toggleHistoricoTotal() {
+    const activo = document.getElementById('chk-historico-total').checked;
+    
+    if (activo) {
+        document.getElementById('chk-historico-desde').checked = false;
+        document.getElementById('contenedor-desde').style.display = 'none';
+        lineaHistorico.setLatLngs([]);
+        toggleHistoricoTotalCargar();
+    } else {
+        lineaHistorico.setLatLngs([]);
+    }
+}
+
+async function toggleHistoricoTotalCargar() {
+    const respuesta = await fetch('/historico_total');
+    const datos = await respuesta.json();
+    if (datos.length === 0) return;
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+}
+
+function toggleHistoricoDesde() {
+    const activo = document.getElementById('chk-historico-desde').checked;
+    
+    if (activo) {
+        document.getElementById('chk-historico-total').checked = false;
+        lineaHistorico.setLatLngs([]);
+        document.getElementById('contenedor-desde').style.display = 'block';
+
+        // Limitar el máximo al momento actual
+        const ahora = aFormatoInput(new Date());
+        document.getElementById('input-historico-desde').max = ahora;
+        document.getElementById('input-historico-hasta').max = ahora;
+        document.getElementById('input-historico-hasta').value = ahora;
+    } else {
+        lineaHistorico.setLatLngs([]);
+        document.getElementById('contenedor-desde').style.display = 'none';
+    }
+}
+
+async function buscarHistoricoDesde() {
+    const desde = document.getElementById('input-historico-desde').value;
+    const hasta = document.getElementById('input-historico-hasta').value;
+    if (!desde || !hasta) return;
+
+    const respuesta = await fetch(`/historico_desde?desde=${desde}&hasta=${hasta}`);
+    const datos = await respuesta.json();
+
+    if (datos.length === 0) return;
+
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+}
+
+async function verRutaAlrededor(ts_fix) {
+    const respuesta = await fetch(`/ruta_alrededor?ts_fix=${ts_fix}`);
+    const datos = await respuesta.json();
+
+    if (datos.length === 0) return;
+
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
+    mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
+}
 
 inicializar();

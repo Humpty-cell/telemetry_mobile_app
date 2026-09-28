@@ -85,6 +85,47 @@ def buscar_ubicacion():
 
     return jsonify(resultados)
 
+@app.route("/historico_total")
+def historico_total():
+    try:
+        puntos = db.obtener_historico_total()
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
+@app.route("/historico_desde")
+def historico_desde():
+    from datetime import datetime
+    desde_str = request.args.get("desde")
+    hasta_str = request.args.get("hasta")
+    if not desde_str or not hasta_str:
+        return jsonify({"error": "Debes indicar 'desde' y 'hasta'"}), 400
+    try:
+        desde_dt = datetime.fromisoformat(desde_str).replace(tzinfo=db.ZONA_LOCAL)
+        hasta_dt = datetime.fromisoformat(hasta_str).replace(tzinfo=db.ZONA_LOCAL)
+    except ValueError:
+        return jsonify({"error": "Formato de fecha/hora inválido"}), 400
+    desde_ms = int(desde_dt.timestamp() * 1000)
+    hasta_ms = int(hasta_dt.timestamp() * 1000)
+    try:
+        puntos = db.obtener_historico_desde(desde_ms, hasta_ms)
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
+
+@app.route("/ruta_alrededor")
+def ruta_alrededor():
+    try:
+        ts_fix = int(request.args.get("ts_fix"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "ts_fix es requerido"}), 400
+    try:
+        puntos = db.obtener_ruta_alrededor(ts_fix)
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(puntos)
+
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")
