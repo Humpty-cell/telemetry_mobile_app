@@ -2,7 +2,7 @@
 Backend_app.py — Solo las rutas Flask.
 
 Toda la lógica de base de datos vive en db.py. Todo el HTML vive en
-templates/index.html. Todo el CSS y JavaScript viven en static/.
+Frontend/index.html. Todo el CSS y JavaScript viven en static/.
 Este archivo solo conecta: "cuando piden esta URL, llama a esta
 función de db.py y devuelve el resultado".
 """
