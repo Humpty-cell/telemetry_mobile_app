@@ -225,17 +225,7 @@ function centrarUbicacion() {
     }
 }
 
-let autocentrado = true;
 
-function toggleAutocentrar() {
-    autocentrado = !autocentrado;
-    const boton = document.getElementById('btn-autocentrar');
-    if (autocentrado) {
-        boton.classList.add('activo');
-    } else {
-        boton.classList.remove('activo');
-    }
-}
 
 let modosBusquedaUbicacion = false;
 let popupBusqueda = null;
