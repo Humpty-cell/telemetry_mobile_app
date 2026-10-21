@@ -25,31 +25,22 @@ async function cargarRecorrido() {
     ultimoIdCargado = puntos[puntos.length - 1].id;
 }
 
-async function actualizarDato() {
-    const respuesta = await fetch('/actual');
-    const datos = await respuesta.json();
-
-    document.getElementById('lat').textContent = datos.lat ?? '-';
-    document.getElementById('lon').textContent = datos.lon ?? '-';
-    document.getElementById('fecha').textContent = datos.fecha;
-    document.getElementById('hora').textContent = datos.hora;
-    document.getElementById('servidor').textContent = datos.servidor;
-
-if (datos.lat !== null && datos.lon !== null) {
-    marcador.setLatLng([datos.lat, datos.lon]);
-    if (autocentrado) {
-        mapa.panTo([datos.lat, datos.lon]);
+    document.getElementById('lat').textContent = datos.lat != null ? datos.lat.toFixed(5) : '-';
+    document.getElementById('lon').textContent = datos.lon != null ? datos.lon.toFixed(5) : '-';
+    ...
+    if (datos.lat != null && datos.lon != null) {
+        marcador.setLatLng([datos.lat, datos.lon]);
+        if (seguimientoActivo) {
+            mapa.panTo([datos.lat, datos.lon]);
+        }
     }
-}
 
-
-    return datos;
-}
 
 async function actualizar() {
-    try { await cargarRecorrido(); } catch (e) { console.error('recorrido', e); }
-    try { await actualizarDato(); } catch (e) { console.error('dato', e); }
+    await cargarRecorrido();
+    await actualizarDato();
 }
+
 // Borra la línea del mapa y le dice a la página que, de ahora en
 // adelante, solo dibuje los puntos que lleguen DESPUÉS de este
 // momento — sin esto, el próximo refresco automático volvería a
@@ -100,6 +91,8 @@ function toggleHistorico() {
         document.getElementById('input-desde').value = aFormatoInput(haceUnaHora);
         document.getElementById('input-hasta').value = aFormatoInput(ahora);
     }
+    if (!panel.classList.contains('abierto') && enModoHistorico) {
+        volverATiempoReal();
 }
 
 function aFormatoInput(fecha) {
