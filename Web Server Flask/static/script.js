@@ -150,18 +150,40 @@ async function buscarHistorico() {
         return;
     }
 
-    lineaHistorico.setLatLngs([]);
-    resultadoDiv.innerHTML = `<strong>${rutas.length} rutas encontradas:</strong>` +
+      lineaHistorico.setLatLngs([]);
+    resultadoDiv.innerHTML =
+        `<button id="btn-lista-rutas" onclick="toggleListaRutas()"
+            style="display:none; width:100%; margin:0 0 6px 0; padding:8px; background:#3B7DD8; color:white;"></button>` +
+        `<div id="lista-rutas"><strong>${rutas.length} rutas encontradas:</strong>` +
         rutas.map((r, i) =>
-            `<div style="padding:4px 0; border-bottom:1px solid #eee;">
-                <button onclick="mostrarRuta(rutasEncontradas[${i}])"
-                    style="padding:2px 8px; margin:0 6px 0 0; background:#E07B39; color:white;">
+            `<div style="padding:6px 0; border-bottom:1px solid #eee;">
+                <button onclick="seleccionarRuta(${i})"
+                    style="padding:6px 12px; margin:0 6px 0 0; background:#E07B39; color:white;">
                     Ruta ${i + 1}
                 </button>
                 ${r[0].hora.slice(5, 16)} → ${r[r.length - 1].hora.slice(11, 16)} · ${r.length} pts
             </div>`
-        ).join('');
+        ).join('') + `</div>`;
 }
+
+
+function seleccionarRuta(i) {
+    const r = rutasEncontradas[i];
+    mostrarRuta(r);
+    document.getElementById('lista-rutas').style.display = 'none';
+    const b = document.getElementById('btn-lista-rutas');
+    b.textContent = `Ruta ${i + 1} · ${r[0].hora.slice(11, 16)} → ${r[r.length - 1].hora.slice(11, 16)} ▼`;
+    b.style.display = 'block';
+}
+
+function toggleListaRutas() {
+    const l = document.getElementById('lista-rutas');
+    l.style.display = l.style.display === 'none' ? 'block' : 'none';
+}
+
+
+
+
 
 function mostrarRuta(datos) {
     const contenedorSlider = document.getElementById('contenedor-slider');

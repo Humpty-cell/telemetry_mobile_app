@@ -204,7 +204,7 @@ def obtener_ruta_alrededor(ts_fix_ms: int, minutos: int = 30) -> list[dict]:
         puntos.append({"lat": lat, "lon": lon, "ts_fix": ts_fix, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos
 
-def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, limite: int = 20000) -> list[list[dict]]:
+def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 10, limite: int = 20000) -> list[list[dict]]:
     """Puntos del rango agrupados en rutas separadas por pausas > pausa_min."""
     conexion = conectar_bd()
     try:
