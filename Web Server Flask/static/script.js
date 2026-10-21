@@ -1,5 +1,5 @@
-const mapa = L.map('mapa', { zoomControl: false }).setView([10.9878, -74.7889], 15);
-L.control.zoom({ position: 'bottomleft' }).addTo(mapa);
+const mapa = L.map('mapa', { zoomControl: true }).setView([10.9878, -74.7889], 15);
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -42,7 +42,6 @@ if (datos.lat !== null && datos.lon !== null) {
     }
 }
 
-
     return datos;
 }
 
@@ -83,8 +82,6 @@ function togglePausa() {
     }
 }
 
-
-
 // --- Modo histórico ---
 const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);
 let enModoHistorico = false;
@@ -108,13 +105,13 @@ function aFormatoInput(fecha) {
     return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
 }
 
-let rutasEncontradas = [];
-
 async function buscarHistorico() {
     const desde = document.getElementById('input-desde').value;
     const hasta = document.getElementById('input-hasta').value;
     const resultadoDiv = document.getElementById('resultado-historico');
     const contenedorSlider = document.getElementById('contenedor-slider');
+    const slider = document.getElementById('slider-historico');
+    const horaSlider = document.getElementById('hora-slider');
 
     if (!desde || !hasta) {
         resultadoDiv.textContent = 'Completa ambas fechas.';
@@ -124,14 +121,15 @@ async function buscarHistorico() {
     resultadoDiv.textContent = 'Buscando...';
     contenedorSlider.style.display = 'none';
 
-    const respuesta = await fetch(`/historico_rutas?desde=${desde}&hasta=${hasta}`);
-    const rutas = await respuesta.json();
+    const respuesta = await fetch(`/historico?desde=${desde}&hasta=${hasta}`);
+    const datos = await respuesta.json();
 
-    if (rutas.error) {
-        resultadoDiv.textContent = 'Error: ' + rutas.error;
+    if (datos.error) {
+        resultadoDiv.textContent = 'Error: ' + datos.error;
         return;
     }
-    if (rutas.length === 0) {
+
+    if (datos.length === 0) {
         resultadoDiv.textContent = 'No hay datos en ese rango.';
         lineaHistorico.setLatLngs([]);
         return;
@@ -142,82 +140,42 @@ async function buscarHistorico() {
         if (!pausado) togglePausa();
     }
 
-    rutasEncontradas = rutas;
-
-    if (rutas.length === 1) {
-        const r = rutas[0];
-        resultadoDiv.textContent = `${r.length} puntos · de ${r[0].hora} a ${r[r.length - 1].hora}`;
-        mostrarRuta(r);
-        return;
-    }
-
-      lineaHistorico.setLatLngs([]);
-    resultadoDiv.innerHTML =
-        `<button id="btn-lista-rutas" onclick="toggleListaRutas()"
-            style="display:none; width:100%; margin:0 0 6px 0; padding:8px; background:#3B7DD8; color:white;"></button>` +
-        `<div id="lista-rutas"><strong>${rutas.length} rutas encontradas:</strong>` +
-        rutas.map((r, i) =>
-            `<div style="padding:6px 0; border-bottom:1px solid #eee;">
-                <button onclick="seleccionarRuta(${i})"
-                    style="padding:6px 12px; margin:0 6px 0 0; background:#E07B39; color:white;">
-                    Ruta ${i + 1}
-                </button>
-                ${r[0].hora.slice(5, 16)} → ${r[r.length - 1].hora.slice(11, 16)} · ${r.length} pts
-            </div>`
-        ).join('') + `</div>`;
-}
-
-
-function seleccionarRuta(i) {
-    const r = rutasEncontradas[i];
-    mostrarRuta(r);
-    document.getElementById('lista-rutas').style.display = 'none';
-    const b = document.getElementById('btn-lista-rutas');
-    b.textContent = `Ruta ${i + 1} · ${r[0].hora.slice(11, 16)} → ${r[r.length - 1].hora.slice(11, 16)} ▼`;
-    b.style.display = 'block';
-}
-
-function toggleListaRutas() {
-    const l = document.getElementById('lista-rutas');
-    l.style.display = l.style.display === 'none' ? 'block' : 'none';
-}
-
-
-
-
-
-function mostrarRuta(datos) {
-    const contenedorSlider = document.getElementById('contenedor-slider');
-    const slider = document.getElementById('slider-historico');
-    const horaSlider = document.getElementById('hora-slider');
-
-    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
+    // Mostrar recorrido completo inicialmente
+    const puntos = datos.map(p => [p.lat, p.lon]);
+    lineaHistorico.setLatLngs(puntos);
     mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 
+    resultadoDiv.textContent = `${datos.length} puntos encontrados · ` +
+        `de ${datos[0].hora} a ${datos[datos.length - 1].hora}`;
+
+    // Configurar slider
     slider.max = datos.length - 1;
     slider.value = datos.length - 1;
-    horaSlider.textContent = datos[datos.length - 1].hora;
     contenedorSlider.style.display = 'block';
 
-    slider.oninput = function () {
-        const punto = datos[parseInt(slider.value)];
-        horaSlider.textContent = punto.hora;   // hora del punto (ts_fix)
+    slider.oninput = function() {
+        const idx = parseInt(this.value);
+        const punto = datos[idx];
 
-        try {
-            const idx = parseInt(slider.value);
-            lineaHistorico.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
-            marcador.setLatLng([punto.lat, punto.lon]);
-            mapa.panTo([punto.lat, punto.lon]);
-            document.getElementById('lat').textContent = Number(punto.lat).toFixed(5);
-            document.getElementById('lon').textContent = Number(punto.lon).toFixed(5);
-            document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
-            document.getElementById('hora').textContent = punto.hora.split(' ')[1];
-            document.getElementById('servidor').textContent = '-';
-        } catch (e) {
-            console.error(e);
-        }
+        // Dibujar recorrido progresivo
+        const puntosHasta = datos.slice(0, idx + 1).map(p => [p.lat, p.lon]);
+        lineaHistorico.setLatLngs(puntosHasta);
+
+        // Mover marcador
+        marcador.setLatLng([punto.lat, punto.lon]);
+        mapa.panTo([punto.lat, punto.lon]);
+
+        // Actualizar panel izquierdo
+        document.getElementById('lat').textContent = punto.lat;
+        document.getElementById('lon').textContent = punto.lon;
+        document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
+	document.getElementById('hora').textContent = punto.hora.split(' ')[1];
+        document.getElementById('servidor').textContent = punto.servidor ?? '-';
+
+        // Mostrar hora bajo el slider
+        horaSlider.textContent = punto.hora;
     };
-    }
+}
 
 function volverATiempoReal() {
     lineaHistorico.setLatLngs([]);
@@ -226,7 +184,6 @@ function volverATiempoReal() {
     enModoHistorico = false;
 
     if (pausado) togglePausa();
-    actualizarDato(); 
 }
 
 // Al abrir o recargar la página, NO cargamos el historial viejo:
@@ -268,7 +225,17 @@ function centrarUbicacion() {
     }
 }
 
+let autocentrado = true;
 
+function toggleAutocentrar() {
+    autocentrado = !autocentrado;
+    const boton = document.getElementById('btn-autocentrar');
+    if (autocentrado) {
+        boton.classList.add('activo');
+    } else {
+        boton.classList.remove('activo');
+    }
+}
 
 let modosBusquedaUbicacion = false;
 let popupBusqueda = null;
@@ -399,12 +366,5 @@ async function verRutaAlrededor(ts_fix) {
     lineaHistorico.setLatLngs(puntos);
     mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 }
-
-const panelHist = document.getElementById('panel-historico');
-L.DomEvent.disableClickPropagation(panelHist);
-L.DomEvent.disableScrollPropagation(panelHist);
-
-
-let autocentrado = true;
 
 inicializar();
