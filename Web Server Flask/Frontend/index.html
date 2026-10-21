@@ -6,8 +6,6 @@
      <title>{{ titulo_pestana }}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -26,9 +24,9 @@
     <div id="panel-historico">
         <strong>Ver recorrido pasado</strong>
         <label for="input-desde">Desde</label>
-        <input type="text" id="input-desde">
+        <input type="datetime-local" id="input-desde">
         <label for="input-hasta">Hasta</label>
-        <input type="text" id="input-hasta">
+        <input type="datetime-local" id="input-hasta">
         <div>
             <button id="btn-buscar-historico" onclick="buscarHistorico()">Buscar</button>
             <button id="btn-volver-vivo" onclick="volverATiempoReal()">Volver a en vivo</button>

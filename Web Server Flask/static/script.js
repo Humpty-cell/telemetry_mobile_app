@@ -82,30 +82,6 @@ function togglePausa() {
     }
 }
 
-/// Despliegue de selección de fechas para el modo histórico
-
-
-const opcionesFecha = {
-    enableTime: true,
-    time_24hr: true,
-    dateFormat: "Y-m-d\\TH:i",
-};
-
-const fpDesde = flatpickr('#input-desde', {
-    ...opcionesFecha,
-    onChange: ([d]) => {
-        const h = fpHasta.selectedDates[0];
-        if (d && h && d > h) fpHasta.setDate(d, false);
-    }
-});
-
-const fpHasta = flatpickr('#input-hasta', {
-    ...opcionesFecha,
-    onChange: ([h]) => {
-        const d = fpDesde.selectedDates[0];
-        if (h && d && h < d) fpDesde.setDate(h, false);
-    }
-});
 
 
 // --- Modo histórico ---
@@ -121,9 +97,9 @@ function toggleHistorico() {
         // ahora, para que el usuario no escriba fechas desde cero.
         const ahora = new Date();
         const haceUnaHora = new Date(ahora.getTime() - 60 * 60 * 1000);
-        fpDesde.setDate(haceUnaHora, false);
-        fpHasta.setDate(ahora, false);
-   }
+        document.getElementById('input-desde').value = aFormatoInput(haceUnaHora);
+        document.getElementById('input-hasta').value = aFormatoInput(ahora);
+    }
 }
 
 function aFormatoInput(fecha) {
