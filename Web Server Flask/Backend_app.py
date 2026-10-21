@@ -2,7 +2,7 @@
 Backend_app.py — Solo las rutas Flask.
 
 Toda la lógica de base de datos vive en db.py. Todo el HTML vive en
-templates/index.html. Todo el CSS y JavaScript viven en static/.
+Frontend/index.html. Todo el CSS y JavaScript viven en static/.
 Este archivo solo conecta: "cuando piden esta URL, llama a esta
 función de db.py y devuelve el resultado".
 """
@@ -125,6 +125,25 @@ def ruta_alrededor():
     except Exception as error:
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)
+
+
+
+@app.route("/historico_rutas")
+def historico_rutas():
+    from datetime import datetime
+    try:
+        desde_dt = datetime.fromisoformat(request.args.get("desde")).replace(tzinfo=db.ZONA_LOCAL)
+        hasta_dt = datetime.fromisoformat(request.args.get("hasta")).replace(tzinfo=db.ZONA_LOCAL)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Formato de fecha/hora inválido"}), 400
+    try:
+        rutas = db.obtener_historico_rutas(int(desde_dt.timestamp() * 1000), int(hasta_dt.timestamp() * 1000))
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(rutas)
+
+
+
 
 @app.route("/")
 def pagina_principal():

@@ -107,7 +107,7 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
         })
     return puntos
 
-def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float = 7.0) -> list[dict]:
+def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float = 100) -> list[dict]:
     """Busca puntos dentro de un radio en metros usando la fórmula de Haversine en SQL."""
     conexion = conectar_bd()
     try:
@@ -203,3 +203,28 @@ def obtener_ruta_alrededor(ts_fix_ms: int, minutos: int = 30) -> list[dict]:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
         puntos.append({"lat": lat, "lon": lon, "ts_fix": ts_fix, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos
+
+def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 10, limite: int = 20000) -> list[list[dict]]:
+    """Puntos del rango agrupados en rutas separadas por pausas > pausa_min."""
+    conexion = conectar_bd()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                "SELECT lat, lon, ts_fix FROM coordenadas "
+                "WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
+                (desde_ms, hasta_ms, limite),
+            )
+            filas = cursor.fetchall()
+    finally:
+        conexion.close()
+
+    rutas, ultimo = [], None
+    for lat, lon, ts in filas:
+        if ultimo is None or ts - ultimo > pausa_min * 60000:
+            rutas.append([])
+        rutas[-1].append({
+            "lat": lat, "lon": lon,
+            "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        ultimo = ts
+    return rutas

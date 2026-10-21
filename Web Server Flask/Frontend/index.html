@@ -13,33 +13,11 @@
 
     <div id="panel">
         <h1>Recorrido del vehiculo</h1>
-        <p>Lat: <span id="lat">-</span></p>
-        <p>Long: <span id="lon">-</span></p>
-        <p>Fecha: <span id="fecha">-</span></p>
-        <p>Hora: <span id="hora">-</span></p>
-        <p>Servidor: <span id="servidor">-</span></p>
-        <button id="btn-pausa" onclick="togglePausa()">Pausar</button>
+        <p class="fila"><span>Lat: <span id="lat">-</span></span><span>Long: <span id="lon">-</span></span></p>
+        <p class="fila"><span>Fecha: <span id="fecha">-</span></span><span>Hora: <span id="hora">-</span></span></p><button id="btn-pausa" onclick="togglePausa()">Pausar</button>
         <button id="btn-borrar" onclick="borrarTrazado()">Borrar trazado</button>
         <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
-        <button id="btn-buscar-ubicacion" onclick="toggleBuscarUbicacion()">Buscar cuándo estuvo el vehículo por:</button>
-        <div id="msg-buscar-ubicacion" style="display:none; font-size:0.78rem; color:#555; margin-top:4px;">Por favor selecciona una ubicación en el mapa</div>
-        <div id="opciones-buscar" style="display:none; margin-top:6px;">
-            <label style="font-size:0.78rem; color:#333; cursor:pointer;">
-                <input type="checkbox" id="chk-historico-total" onchange="toggleHistoricoTotal()">
-                Mostrar recorrido histórico total
-            </label>
-            <label style="font-size:0.78rem; color:#333; cursor:pointer; display:block; margin-top:6px;">
-                <input type="checkbox" id="chk-historico-desde" onchange="toggleHistoricoDesde()">
-                Mostrar recorrido histórico desde:
-            </label>
-            <div id="contenedor-desde" style="display:none; margin-top:4px;">
-                <label style="font-size:0.75rem; color:#333;">Desde:</label>
-                <input type="datetime-local" id="input-historico-desde" style="width:100%; font-size:0.75rem;">
-                <label style="font-size:0.75rem; color:#333; margin-top:4px; display:block;">Hasta:</label>
-                <input type="datetime-local" id="input-historico-hasta" style="width:100%; font-size:0.75rem;">
-                <button onclick="buscarHistoricoDesde()" style="margin-top:4px; width:100%; padding:4px; border:none; border-radius:4px; background:#3B7DD8; color:white; font-weight:bold; cursor:pointer;">Ver recorrido</button>
-            </div>
-        </div>
+        
 
     </div>
 
@@ -60,7 +38,6 @@
 	    <div id="hora-slider" style="text-align:center; font-size:0.75rem; color:#444; margin-top:4px;"></div>
 	</div>
     </div>
-    <button id="btn-autocentrar" class="activo" onclick="toggleAutocentrar()" title="Auto-centrado">Auto-centrado</button>
     <button id="btn-centrar" onclick="centrarUbicacion()" title="Centrar ubicación">𖦏</button>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
