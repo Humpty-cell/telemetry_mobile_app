@@ -225,6 +225,7 @@ function volverATiempoReal() {
     enModoHistorico = false;
 
     if (pausado) togglePausa();
+    actualizarDato(); 
 }
 
 // Al abrir o recargar la página, NO cargamos el historial viejo:
