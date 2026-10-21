@@ -199,21 +199,24 @@ function mostrarRuta(datos) {
     contenedorSlider.style.display = 'block';
 
     slider.oninput = function () {
-        const idx = parseInt(this.value);
-        const punto = datos[idx];
+        const punto = datos[parseInt(slider.value)];
+        horaSlider.textContent = punto.hora;   // hora del punto (ts_fix)
 
-        lineaHistorico.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
-        marcador.setLatLng([punto.lat, punto.lon]);
-        mapa.panTo([punto.lat, punto.lon]);
-
-        document.getElementById('lat').textContent = punto.lat;
-        document.getElementById('lon').textContent = punto.lon;
-        document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
-        document.getElementById('hora').textContent = punto.hora.split(' ')[1];
-        document.getElementById('servidor').textContent = '-';
-        horaSlider.textContent = punto.hora;
+        try {
+            const idx = parseInt(slider.value);
+            lineaHistorico.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
+            marcador.setLatLng([punto.lat, punto.lon]);
+            mapa.panTo([punto.lat, punto.lon]);
+            document.getElementById('lat').textContent = Number(punto.lat).toFixed(5);
+            document.getElementById('lon').textContent = Number(punto.lon).toFixed(5);
+            document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
+            document.getElementById('hora').textContent = punto.hora.split(' ')[1];
+            document.getElementById('servidor').textContent = '-';
+        } catch (e) {
+            console.error(e);
+        }
     };
-}
+    }
 
 function volverATiempoReal() {
     lineaHistorico.setLatLngs([]);
