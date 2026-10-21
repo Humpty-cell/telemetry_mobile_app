@@ -404,4 +404,7 @@ const panelHist = document.getElementById('panel-historico');
 L.DomEvent.disableClickPropagation(panelHist);
 L.DomEvent.disableScrollPropagation(panelHist);
 
+
+let autocentrado = true;
+
 inicializar();
