@@ -107,13 +107,13 @@ function aFormatoInput(fecha) {
     return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
 }
 
+let rutasEncontradas = [];
+
 async function buscarHistorico() {
     const desde = document.getElementById('input-desde').value;
     const hasta = document.getElementById('input-hasta').value;
     const resultadoDiv = document.getElementById('resultado-historico');
     const contenedorSlider = document.getElementById('contenedor-slider');
-    const slider = document.getElementById('slider-historico');
-    const horaSlider = document.getElementById('hora-slider');
 
     if (!desde || !hasta) {
         resultadoDiv.textContent = 'Completa ambas fechas.';
@@ -123,15 +123,14 @@ async function buscarHistorico() {
     resultadoDiv.textContent = 'Buscando...';
     contenedorSlider.style.display = 'none';
 
-    const respuesta = await fetch(`/historico?desde=${desde}&hasta=${hasta}`);
-    const datos = await respuesta.json();
+    const respuesta = await fetch(`/historico_rutas?desde=${desde}&hasta=${hasta}`);
+    const rutas = await respuesta.json();
 
-    if (datos.error) {
-        resultadoDiv.textContent = 'Error: ' + datos.error;
+    if (rutas.error) {
+        resultadoDiv.textContent = 'Error: ' + rutas.error;
         return;
     }
-
-    if (datos.length === 0) {
+    if (rutas.length === 0) {
         resultadoDiv.textContent = 'No hay datos en ese rango.';
         lineaHistorico.setLatLngs([]);
         return;
@@ -142,39 +141,54 @@ async function buscarHistorico() {
         if (!pausado) togglePausa();
     }
 
-    // Mostrar recorrido completo inicialmente
-    const puntos = datos.map(p => [p.lat, p.lon]);
-    lineaHistorico.setLatLngs(puntos);
+    rutasEncontradas = rutas;
+
+    if (rutas.length === 1) {
+        const r = rutas[0];
+        resultadoDiv.textContent = `${r.length} puntos · de ${r[0].hora} a ${r[r.length - 1].hora}`;
+        mostrarRuta(r);
+        return;
+    }
+
+    lineaHistorico.setLatLngs([]);
+    resultadoDiv.innerHTML = `<strong>${rutas.length} rutas encontradas:</strong>` +
+        rutas.map((r, i) =>
+            `<div style="padding:4px 0; border-bottom:1px solid #eee;">
+                <button onclick="mostrarRuta(rutasEncontradas[${i}])"
+                    style="padding:2px 8px; margin:0 6px 0 0; background:#E07B39; color:white;">
+                    Ruta ${i + 1}
+                </button>
+                ${r[0].hora.slice(5, 16)} → ${r[r.length - 1].hora.slice(11, 16)} · ${r.length} pts
+            </div>`
+        ).join('');
+}
+
+function mostrarRuta(datos) {
+    const contenedorSlider = document.getElementById('contenedor-slider');
+    const slider = document.getElementById('slider-historico');
+    const horaSlider = document.getElementById('hora-slider');
+
+    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
     mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 
-    resultadoDiv.textContent = `${datos.length} puntos encontrados · ` +
-        `de ${datos[0].hora} a ${datos[datos.length - 1].hora}`;
-
-    // Configurar slider
     slider.max = datos.length - 1;
     slider.value = datos.length - 1;
+    horaSlider.textContent = datos[datos.length - 1].hora;
     contenedorSlider.style.display = 'block';
 
-    slider.oninput = function() {
+    slider.oninput = function () {
         const idx = parseInt(this.value);
         const punto = datos[idx];
 
-        // Dibujar recorrido progresivo
-        const puntosHasta = datos.slice(0, idx + 1).map(p => [p.lat, p.lon]);
-        lineaHistorico.setLatLngs(puntosHasta);
-
-        // Mover marcador
+        lineaHistorico.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
         marcador.setLatLng([punto.lat, punto.lon]);
         mapa.panTo([punto.lat, punto.lon]);
 
-        // Actualizar panel izquierdo
         document.getElementById('lat').textContent = punto.lat;
         document.getElementById('lon').textContent = punto.lon;
         document.getElementById('fecha').textContent = punto.hora.split(' ')[0];
-	document.getElementById('hora').textContent = punto.hora.split(' ')[1];
-        document.getElementById('servidor').textContent = punto.servidor ?? '-';
-
-        // Mostrar hora bajo el slider
+        document.getElementById('hora').textContent = punto.hora.split(' ')[1];
+        document.getElementById('servidor').textContent = '-';
         horaSlider.textContent = punto.hora;
     };
 }

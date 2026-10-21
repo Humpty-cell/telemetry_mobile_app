@@ -126,6 +126,25 @@ def ruta_alrededor():
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)
 
+
+
+@app.route("/historico_rutas")
+def historico_rutas():
+    from datetime import datetime
+    try:
+        desde_dt = datetime.fromisoformat(request.args.get("desde")).replace(tzinfo=db.ZONA_LOCAL)
+        hasta_dt = datetime.fromisoformat(request.args.get("hasta")).replace(tzinfo=db.ZONA_LOCAL)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Formato de fecha/hora inválido"}), 400
+    try:
+        rutas = db.obtener_historico_rutas(int(desde_dt.timestamp() * 1000), int(hasta_dt.timestamp() * 1000))
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
+    return jsonify(rutas)
+
+
+
+
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")
