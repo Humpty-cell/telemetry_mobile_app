@@ -29,18 +29,19 @@ async function actualizarDato() {
     const respuesta = await fetch('/actual');
     const datos = await respuesta.json();
 
-    document.getElementById('lat').textContent = datos.lat != null ? datos.lat.toFixed(5) : '-';
-    document.getElementById('lon').textContent = datos.lon != null ? datos.lon.toFixed(5) : '-';
+    document.getElementById('lat').textContent = datos.lat ?? '-';
+    document.getElementById('lon').textContent = datos.lon ?? '-';
     document.getElementById('fecha').textContent = datos.fecha;
     document.getElementById('hora').textContent = datos.hora;
     document.getElementById('servidor').textContent = datos.servidor;
 
-    if (datos.lat != null && datos.lon != null) {
-        marcador.setLatLng([datos.lat, datos.lon]);
-        if (seguimientoActivo) {
-            mapa.panTo([datos.lat, datos.lon]);
-        }
+if (datos.lat !== null && datos.lon !== null) {
+    marcador.setLatLng([datos.lat, datos.lon]);
+    if (autocentrado) {
+        mapa.panTo([datos.lat, datos.lon]);
     }
+}
+
 
     return datos;
 }
