@@ -47,10 +47,9 @@ if (datos.lat !== null && datos.lon !== null) {
 }
 
 async function actualizar() {
-    await cargarRecorrido();
-    await actualizarDato();
+    try { await cargarRecorrido(); } catch (e) { console.error('recorrido', e); }
+    try { await actualizarDato(); } catch (e) { console.error('dato', e); }
 }
-
 // Borra la línea del mapa y le dice a la página que, de ahora en
 // adelante, solo dibuje los puntos que lleguen DESPUÉS de este
 // momento — sin esto, el próximo refresco automático volvería a
