@@ -1,5 +1,5 @@
-const mapa = L.map('mapa', { zoomControl: true }).setView([10.9878, -74.7889], 15);
-
+const mapa = L.map('mapa', { zoomControl: false }).setView([10.9878, -74.7889], 15);
+L.control.zoom({ position: 'bottomleft' }).addTo(mapa);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
