@@ -395,4 +395,8 @@ async function verRutaAlrededor(ts_fix) {
     mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
 }
 
+const panelHist = document.getElementById('panel-historico');
+L.DomEvent.disableClickPropagation(panelHist);
+L.DomEvent.disableScrollPropagation(panelHist);
+
 inicializar();
