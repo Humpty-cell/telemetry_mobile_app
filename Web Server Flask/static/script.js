@@ -55,6 +55,14 @@ async function actualizarAuto2() {
     linea2.setLatLngs(puntos2);
     ultimoId2 = p[p.length - 1].id;
 }
+// Id del último punto del auto 2 (0 si no hay). Sirve para que el trazado
+// empiece vacío y solo dibuje lo que llegue de ahora en adelante.
+async function obtenerUltimoId2() {
+    const r = await fetch('/actual?auto=2', { cache: 'no-store' });
+    if (!r.ok) return 0;
+    const d = await r.json();
+    return (d && d.id) ? d.id : 0;
+}
 const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);   // auto 1
 const lineaHistorico2 = L.polyline([], { color: '#3B7DDD', weight: 4, dashArray: '6 6' }).addTo(mapa);  // auto 2
 
@@ -134,11 +142,24 @@ async function actualizar() {
 
 // Borra la línea y dibuja solo los puntos que lleguen de ahora en adelante.
 async function borrarTrazado() {
-    puntosRecorrido = [];
-    linea.setLatLngs([]);
+    // Espera a que termine la actualización en curso; si no, podría volver a
+    // dibujar puntos viejos justo después de borrar.
+    while (actualizando) await new Promise(r => setTimeout(r, 50));
+    actualizando = true;
+    try {
+        // Auto 1
+        puntosRecorrido = [];
+        linea.setLatLngs([]);
+        const datos = await actualizarDato();
+        ultimoIdCargado = (datos && datos.id) ? datos.id : 0;
 
-    const datos = await actualizarDato();
-    ultimoIdCargado = (datos && datos.id) ? datos.id : 0;
+        // Auto 2
+        puntos2 = [];
+        linea2.setLatLngs([]);
+        ultimoId2 = await obtenerUltimoId2();
+    } finally {
+        actualizando = false;
+    }
 }
 
 let intervaloId = null;
@@ -506,6 +527,13 @@ async function inicializar() {
         }
     } catch (e) {
         console.error('inicializar:', e);
+    }
+
+    // Auto 2: igual que el auto 1, no carga el recorrido anterior
+    try {
+        ultimoId2 = await obtenerUltimoId2();
+    } catch (e) {
+        console.error('inicializar auto2:', e);
     }
 
     const b = $('btn-centrar');
