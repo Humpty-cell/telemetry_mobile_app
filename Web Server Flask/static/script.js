@@ -55,6 +55,14 @@ async function actualizarAuto2() {
     linea2.setLatLngs(puntos2);
     ultimoId2 = p[p.length - 1].id;
 }
+// Id del último punto del auto 2 (0 si no hay). Sirve para que el trazado
+// empiece vacío y solo dibuje lo que llegue de ahora en adelante.
+async function obtenerUltimoId2() {
+    const r = await fetch('/actual?auto=2', { cache: 'no-store' });
+    if (!r.ok) return 0;
+    const d = await r.json();
+    return (d && d.id) ? d.id : 0;
+}
 const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);   // auto 1
 const lineaHistorico2 = L.polyline([], { color: '#3B7DDD', weight: 4, dashArray: '6 6' }).addTo(mapa);  // auto 2
 
@@ -148,11 +156,7 @@ async function borrarTrazado() {
         // Auto 2
         puntos2 = [];
         linea2.setLatLngs([]);
-        const r2 = await fetch('/actual?auto=2', { cache: 'no-store' });
-        if (r2.ok) {
-            const d2 = await r2.json();
-            ultimoId2 = (d2 && d2.id) ? d2.id : 0;
-        }
+        ultimoId2 = await obtenerUltimoId2();
     } finally {
         actualizando = false;
     }
@@ -523,6 +527,13 @@ async function inicializar() {
         }
     } catch (e) {
         console.error('inicializar:', e);
+    }
+
+    // Auto 2: igual que el auto 1, no carga el recorrido anterior
+    try {
+        ultimoId2 = await obtenerUltimoId2();
+    } catch (e) {
+        console.error('inicializar auto2:', e);
     }
 
     const b = $('btn-centrar');
