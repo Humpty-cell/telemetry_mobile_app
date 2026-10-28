@@ -134,11 +134,28 @@ async function actualizar() {
 
 // Borra la línea y dibuja solo los puntos que lleguen de ahora en adelante.
 async function borrarTrazado() {
-    puntosRecorrido = [];
-    linea.setLatLngs([]);
+    // Espera a que termine la actualización en curso; si no, podría volver a
+    // dibujar puntos viejos justo después de borrar.
+    while (actualizando) await new Promise(r => setTimeout(r, 50));
+    actualizando = true;
+    try {
+        // Auto 1
+        puntosRecorrido = [];
+        linea.setLatLngs([]);
+        const datos = await actualizarDato();
+        ultimoIdCargado = (datos && datos.id) ? datos.id : 0;
 
-    const datos = await actualizarDato();
-    ultimoIdCargado = (datos && datos.id) ? datos.id : 0;
+        // Auto 2
+        puntos2 = [];
+        linea2.setLatLngs([]);
+        const r2 = await fetch('/actual?auto=2', { cache: 'no-store' });
+        if (r2.ok) {
+            const d2 = await r2.json();
+            ultimoId2 = (d2 && d2.id) ? d2.id : 0;
+        }
+    } finally {
+        actualizando = false;
+    }
 }
 
 let intervaloId = null;
