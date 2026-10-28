@@ -64,9 +64,9 @@ def guardar_en_bd(trama: dict, origen_ip: str, recibido_en: str) -> None:
         with conexion.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO coordenadas "
-                "(lat, lon, ts_fix, origen_ip, recibido_en, servidor_nombre) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (trama["lat"], trama["lon"], trama["ts"], origen_ip, recibido_en, SERVIDOR_NOMBRE),
+                "(lat, lon, ts_fix, origen_ip, recibido_en, servidor_nombre, auto) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (trama["lat"], trama["lon"], trama["ts"], origen_ip, recibido_en, SERVIDOR_NOMBRE, trama["auto"]),
             )
         conexion.commit()
     finally:
@@ -97,6 +97,7 @@ def parsear_trama(texto: str) -> dict | None:
             "lat": float(campos["LAT"]),
             "lon": float(campos["LON"]),
             "ts": int(campos["TS"]),
+            "auto": int(campos.get("ID", "1")),  # tramas viejas sin ID = auto 1
         }
     except (KeyError, ValueError):
         return None

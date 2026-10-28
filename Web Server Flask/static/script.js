@@ -21,6 +21,24 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const marcador = L.marker([10.9878, -74.7889]).addTo(mapa);
 const linea = L.polyline([], { color: '#1D9E75', weight: 4 }).addTo(mapa);
+const marcador2 = L.marker([10.9878, -74.7889], { opacity: 0 }).addTo(mapa);
+const linea2 = L.polyline([], { color: '#3B7DDD', weight: 4 }).addTo(mapa);
+let ultimoId2 = 0;
+let puntos2 = [];
+async function actualizarAuto2() {
+    const r = await fetch('/actual?auto=2', { cache: 'no-store' });
+    if (r.ok) {
+        const d = await r.json();
+        if (d.lat !== null && d.lon !== null) { marcador2.setLatLng([d.lat, d.lon]); marcador2.setOpacity(1); }
+    }
+    const r2 = await fetch('/recorrido?auto=2&desde=' + ultimoId2, { cache: 'no-store' });
+    if (!r2.ok) return;
+    const p = await r2.json();
+    if (!Array.isArray(p) || p.length === 0) return;
+    puntos2 = puntos2.concat(p.map(x => [x.lat, x.lon]));
+    linea2.setLatLngs(puntos2);
+    ultimoId2 = p[p.length - 1].id;
+}
 const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);
 
 let ultimoIdCargado = 0;
@@ -75,6 +93,7 @@ async function actualizar() {
     try {
         await actualizarDato().catch(e => console.error('actual:', e));
         await cargarRecorrido().catch(e => console.error('recorrido:', e));
+        await actualizarAuto2().catch(e => console.error('auto2:', e));
     } finally {
         actualizando = false;
     }

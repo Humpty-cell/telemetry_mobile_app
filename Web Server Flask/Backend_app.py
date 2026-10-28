@@ -18,7 +18,7 @@ app = Flask(__name__, template_folder='Frontend')
 @app.route("/actual")
 def actual():
     try:
-        datos = db.obtener_ultima_coordenada()
+        datos = db.obtener_ultima_coordenada(request.args.get("auto", default=1, type=int))
     except Exception as error:
         return jsonify({"error": f"No se pudo consultar la base de datos: {error}"}), 500
 
@@ -31,7 +31,7 @@ def actual():
 def recorrido():
     desde_id = request.args.get("desde", default=0, type=int)
     try:
-        puntos = db.obtener_recorrido(desde_id)
+        puntos = db.obtener_recorrido(desde_id, auto=request.args.get("auto", default=1, type=int))
     except Exception as error:
         return jsonify({"error": f"No se pudo consultar la base de datos: {error}"}), 500
     return jsonify(puntos)
