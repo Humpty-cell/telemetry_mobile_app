@@ -89,7 +89,7 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas "
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas "
                 "WHERE ts_fix BETWEEN %s AND %s "
                 "ORDER BY ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
@@ -99,11 +99,12 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
         conexion.close()
 
     puntos = []
-    for lat, lon, ts_fix in filas:
+    for lat, lon, ts_fix, auto in filas:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
         puntos.append({
             "lat": lat,
             "lon": lon,
+            "auto": auto,
             "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S"),
         })
     return puntos
@@ -115,7 +116,7 @@ def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float
         with conexion.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT lat, lon, ts_fix
+                SELECT lat, lon, ts_fix, auto
                 FROM coordenadas
                 WHERE (
                     6371000 * acos(
@@ -133,11 +134,12 @@ def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float
         conexion.close()
 
     puntos = []
-    for lat, lon, ts_fix in filas:
+    for lat, lon, ts_fix, auto in filas:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
         puntos.append({
             "lat": lat,
             "lon": lon,
+            "auto": auto,
             "ts_fix": ts_fix,
             "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S"),
         })
@@ -149,7 +151,7 @@ def obtener_historico_total(limite: int = 10000) -> list[dict]:
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas ORDER BY ts_fix ASC LIMIT %s",
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas ORDER BY ts_fix ASC LIMIT %s",
                 (limite,),
             )
             filas = cursor.fetchall()
@@ -157,9 +159,9 @@ def obtener_historico_total(limite: int = 10000) -> list[dict]:
         conexion.close()
 
     puntos = []
-    for lat, lon, ts_fix in filas:
+    for lat, lon, ts_fix, auto in filas:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
-        puntos.append({"lat": lat, "lon": lon, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
+        puntos.append({"lat": lat, "lon": lon, "auto": auto, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos
 
 def obtener_historico_desde(desde_ms: int, hasta_ms: int, limite: int = 10000) -> list[dict]:
@@ -168,7 +170,7 @@ def obtener_historico_desde(desde_ms: int, hasta_ms: int, limite: int = 10000) -
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
             )
             filas = cursor.fetchall()
@@ -176,56 +178,53 @@ def obtener_historico_desde(desde_ms: int, hasta_ms: int, limite: int = 10000) -
         conexion.close()
 
     puntos = []
-    for lat, lon, ts_fix in filas:
+    for lat, lon, ts_fix, auto in filas:
         momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
-        puntos.append({"lat": lat, "lon": lon, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
+        puntos.append({"lat": lat, "lon": lon, "auto": auto, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
     return puntos
 
-def obtener_ruta_alrededor(ts_fix_ms: int, minutos: int = 30) -> list[dict]:
-    """Devuelve puntos desde 30 min antes hasta 30 min después de un timestamp."""
+def obtener_ruta_alrededor(ts_fix_ms: int, auto: int | None = None, minutos: int = 30) -> list[dict]:
+    """Puntos desde 30 min antes hasta 30 min después de un timestamp (del auto indicado)."""
     margen_ms = minutos * 60 * 1000
-    desde_ms = ts_fix_ms - margen_ms
-    hasta_ms = ts_fix_ms + margen_ms
-
     conexion = conectar_bd()
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas "
-                "WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC",
-                (desde_ms, hasta_ms),
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas "
+                "WHERE ts_fix BETWEEN %s AND %s AND (%s IS NULL OR auto = %s) ORDER BY ts_fix ASC",
+                (ts_fix_ms - margen_ms, ts_fix_ms + margen_ms, auto, auto),
             )
             filas = cursor.fetchall()
     finally:
         conexion.close()
 
-    puntos = []
-    for lat, lon, ts_fix in filas:
-        momento_local = datetime.fromtimestamp(ts_fix / 1000, tz=ZONA_LOCAL)
-        puntos.append({"lat": lat, "lon": lon, "ts_fix": ts_fix, "hora": momento_local.strftime("%Y-%m-%d %H:%M:%S")})
-    return puntos
+    return [{"lat": lat, "lon": lon, "auto": a, "ts_fix": ts,
+             "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S")}
+            for lat, lon, ts, a in filas]
+
 
 def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, limite: int = 20000) -> list[list[dict]]:
-    """Puntos del rango agrupados en rutas separadas por pausas > pausa_min."""
+    """Rutas separadas por auto y por pausas > pausa_min."""
     conexion = conectar_bd()
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix FROM coordenadas "
-                "WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas "
+                "WHERE ts_fix BETWEEN %s AND %s ORDER BY auto, ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
             )
             filas = cursor.fetchall()
     finally:
         conexion.close()
 
-    rutas, ultimo = [], None
-    for lat, lon, ts in filas:
-        if ultimo is None or ts - ultimo > pausa_min * 60000:
+    rutas, ultimo, ult_auto = [], None, None
+    for lat, lon, ts, auto in filas:
+        if ultimo is None or auto != ult_auto or ts - ultimo > pausa_min * 60000:
             rutas.append([])
         rutas[-1].append({
-            "lat": lat, "lon": lon,
+            "lat": lat, "lon": lon, "auto": auto,
             "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S"),
         })
-        ultimo = ts
+        ultimo, ult_auto = ts, auto
+    rutas.sort(key=lambda r: r[0]["hora"])
     return rutas

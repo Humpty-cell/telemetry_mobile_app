@@ -121,7 +121,7 @@ def ruta_alrededor():
     except (TypeError, ValueError):
         return jsonify({"error": "ts_fix es requerido"}), 400
     try:
-        puntos = db.obtener_ruta_alrededor(ts_fix)
+        puntos = db.obtener_ruta_alrededor(ts_fix, request.args.get("auto", type=int))
     except Exception as error:
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(puntos)

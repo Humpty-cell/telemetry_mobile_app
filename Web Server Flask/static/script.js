@@ -40,6 +40,8 @@ async function actualizarAuto2() {
     if (r.ok) {
         const d = await r.json();
         if (d.lat !== null && d.lon !== null) { marcador2.setLatLng([d.lat, d.lon]); marcador2.setOpacity(1); }
+        setTexto('lat2', d.lat ?? '-'); setTexto('lon2', d.lon ?? '-');
+        setTexto('fecha2', d.fecha ?? '-'); setTexto('hora2', d.hora ?? '-');
     }
     const r2 = await fetch('/recorrido?auto=2&desde=' + ultimoId2, { cache: 'no-store' });
     if (!r2.ok) return;
@@ -49,7 +51,23 @@ async function actualizarAuto2() {
     linea2.setLatLngs(puntos2);
     ultimoId2 = p[p.length - 1].id;
 }
-const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);
+const lineaHistorico = L.polyline([], { color: '#E07B39', weight: 4, dashArray: '6 6' }).addTo(mapa);   // auto 1
+const lineaHistorico2 = L.polyline([], { color: '#3B7DDD', weight: 4, dashArray: '6 6' }).addTo(mapa);  // auto 2
+
+function limpiarHistorico() {
+    lineaHistorico.setLatLngs([]);
+    lineaHistorico2.setLatLngs([]);
+}
+// Reparte los puntos entre las dos líneas según p.auto
+function dibujarHistorico(datos) {
+    lineaHistorico.setLatLngs(datos.filter(p => p.auto !== 2).map(p => [p.lat, p.lon]));
+    lineaHistorico2.setLatLngs(datos.filter(p => p.auto === 2).map(p => [p.lat, p.lon]));
+}
+function boundsHistorico() {
+    const b = L.latLngBounds([]);
+    [lineaHistorico, lineaHistorico2].forEach(l => { if (l.getLatLngs().length) b.extend(l.getBounds()); });
+    return b;
+}
 
 let ultimoIdCargado = 0;
 let puntosRecorrido = [];
@@ -189,7 +207,7 @@ async function buscarHistorico() {
     }
     if (rutas.length === 0) {
         resultadoDiv.textContent = 'No hay datos en ese rango.';
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
         return;
     }
 
@@ -202,12 +220,12 @@ async function buscarHistorico() {
 
     if (rutas.length === 1) {
         const r = rutas[0];
-        resultadoDiv.textContent = `${r.length} puntos · de ${r[0].hora} a ${r[r.length - 1].hora}`;
+        resultadoDiv.textContent = `Auto ${r[0].auto} · ${r.length} puntos · de ${r[0].hora} a ${r[r.length - 1].hora}`;
         mostrarRuta(r);
         return;
     }
 
-    lineaHistorico.setLatLngs([]);
+    limpiarHistorico();
     resultadoDiv.innerHTML =
         `<button id="btn-lista-rutas" onclick="toggleListaRutas()"
             style="display:none; width:100%; margin:0 0 6px 0; padding:8px; background:#3B7DD8; color:white;"></button>` +
@@ -216,7 +234,7 @@ async function buscarHistorico() {
             `<div style="padding:6px 0; border-bottom:1px solid #eee;">
                 <button onclick="seleccionarRuta(${i})"
                     style="padding:6px 12px; margin:0 6px 0 0; background:#E07B39; color:white;">
-                    Ruta ${i + 1}
+                    Auto ${r[0].auto} · Ruta ${i + 1}
                 </button>
                 ${r[0].hora.slice(5, 16)} → ${r[r.length - 1].hora.slice(11, 16)} · ${r.length} pts
             </div>`
@@ -229,7 +247,7 @@ function seleccionarRuta(i) {
     setDisplay('lista-rutas', 'none');
     const b = $('btn-lista-rutas');
     if (b) {
-        b.textContent = `Ruta ${i + 1} · ${r[0].hora.slice(11, 16)} → ${r[r.length - 1].hora.slice(11, 16)} ▼`;
+        b.textContent = `Auto ${r[0].auto} · Ruta ${i + 1} · ${r[0].hora.slice(11, 16)} → ${r[r.length - 1].hora.slice(11, 16)} ▼`;
         b.style.display = 'block';
     }
 }
@@ -242,9 +260,14 @@ function toggleListaRutas() {
 function mostrarRuta(datos) {
     const slider = $('slider-historico');
     const horaSlider = $('hora-slider');
+    const dos = datos[0].auto === 2;
+    const linea = dos ? lineaHistorico2 : lineaHistorico;
+    const mrk = dos ? marcador2 : marcador;
+    const s = dos ? '2' : '';
 
-    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
-    mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
+    limpiarHistorico();
+    linea.setLatLngs(datos.map(p => [p.lat, p.lon]));
+    mapa.fitBounds(linea.getBounds(), { maxZoom: 17 });
 
     slider.max = datos.length - 1;
     slider.value = datos.length - 1;
@@ -256,20 +279,21 @@ function mostrarRuta(datos) {
         const punto = datos[idx];
         horaSlider.textContent = punto.hora;
 
-        lineaHistorico.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
-        marcador.setLatLng([punto.lat, punto.lon]);
+        linea.setLatLngs(datos.slice(0, idx + 1).map(p => [p.lat, p.lon]));
+        mrk.setLatLng([punto.lat, punto.lon]);
+        mrk.setOpacity(1);
         mapa.panTo([punto.lat, punto.lon]);
 
-        setTexto('lat', Number(punto.lat).toFixed(5));
-        setTexto('lon', Number(punto.lon).toFixed(5));
-        setTexto('fecha', punto.hora.split(' ')[0]);
-        setTexto('hora', punto.hora.split(' ')[1]);
+        setTexto('lat' + s, Number(punto.lat).toFixed(5));
+        setTexto('lon' + s, Number(punto.lon).toFixed(5));
+        setTexto('fecha' + s, punto.hora.split(' ')[0]);
+        setTexto('hora' + s, punto.hora.split(' ')[1]);
         setTexto('servidor', '-');
     };
 }
 
 function volverATiempoReal() {
-    lineaHistorico.setLatLngs([]);
+    limpiarHistorico();
     setTexto('resultado-historico', '');
     const panel = $('panel-historico');
     if (panel) panel.classList.remove('abierto');
@@ -323,7 +347,7 @@ function toggleBuscarUbicacion() {
         setDisplay('opciones-buscar', 'none');
         const chk = $('chk-historico-total');
         if (chk) chk.checked = false;
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
         if (popupBusqueda) {
             popupBusqueda.remove();
             popupBusqueda = null;
@@ -351,8 +375,8 @@ mapa.on('click', async function (e) {
     } else {
         const lista = datos.map(p =>
             `<div style="padding:4px 0; border-bottom:1px solid #eee;">
-                ${p.hora}
-                <button onclick="verRutaAlrededor(${p.ts_fix})"
+                Auto ${p.auto} · ${p.hora}
+                <button onclick="verRutaAlrededor(${p.ts_fix}, ${p.auto})"
                     style="margin-left:6px; padding:2px 8px; border:none; border-radius:4px;
                     background:#E07B39; color:white; cursor:pointer; font-size:0.75rem;">
                     Ver ruta
@@ -375,10 +399,10 @@ function toggleHistoricoTotal() {
         const chkDesde = $('chk-historico-desde');
         if (chkDesde) chkDesde.checked = false;
         setDisplay('contenedor-desde', 'none');
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
         toggleHistoricoTotalCargar();
     } else {
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
     }
 }
 
@@ -386,7 +410,7 @@ async function toggleHistoricoTotalCargar() {
     const respuesta = await fetch('/historico_total');
     const datos = await respuesta.json();
     if (!Array.isArray(datos) || datos.length === 0) return;
-    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
+    dibujarHistorico(datos);
 }
 
 function toggleHistoricoDesde() {
@@ -395,7 +419,7 @@ function toggleHistoricoDesde() {
     if (activo) {
         const chkTotal = $('chk-historico-total');
         if (chkTotal) chkTotal.checked = false;
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
         setDisplay('contenedor-desde', 'block');
 
         const ahora = aFormatoInput(new Date());
@@ -403,7 +427,7 @@ function toggleHistoricoDesde() {
         $('input-historico-hasta').max = ahora;
         $('input-historico-hasta').value = ahora;
     } else {
-        lineaHistorico.setLatLngs([]);
+        limpiarHistorico();
         setDisplay('contenedor-desde', 'none');
     }
 }
@@ -417,16 +441,16 @@ async function buscarHistoricoDesde() {
     const datos = await respuesta.json();
     if (!Array.isArray(datos) || datos.length === 0) return;
 
-    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
+    dibujarHistorico(datos);
 }
 
-async function verRutaAlrededor(ts_fix) {
-    const respuesta = await fetch(`/ruta_alrededor?ts_fix=${ts_fix}`);
+async function verRutaAlrededor(ts_fix, auto) {
+    const respuesta = await fetch(`/ruta_alrededor?ts_fix=${ts_fix}&auto=${auto}`);
     const datos = await respuesta.json();
     if (!Array.isArray(datos) || datos.length === 0) return;
 
-    lineaHistorico.setLatLngs(datos.map(p => [p.lat, p.lon]));
-    mapa.fitBounds(lineaHistorico.getBounds(), { maxZoom: 17 });
+    dibujarHistorico(datos);
+    mapa.fitBounds(boundsHistorico(), { maxZoom: 17 });
 }
 
 // ---------- Paneles sobre el mapa ----------
