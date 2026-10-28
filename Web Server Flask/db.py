@@ -32,14 +32,15 @@ def conectar_bd():
     )
 
 
-def obtener_ultima_coordenada() -> dict | None:
+def obtener_ultima_coordenada(auto: int = 1) -> dict | None:
     """Consulta la fila más reciente de toda la tabla."""
     conexion = conectar_bd()
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
                 "SELECT id, lat, lon, ts_fix, servidor_nombre FROM coordenadas "
-                "ORDER BY id DESC LIMIT 1"
+                "WHERE auto = %s ORDER BY id DESC LIMIT 1",
+                (auto,)
             )
             fila = cursor.fetchone()
     finally:
@@ -61,7 +62,7 @@ def obtener_ultima_coordenada() -> dict | None:
     }
 
 
-def obtener_recorrido(desde_id: int = 0, limite: int = 2000) -> list[dict]:
+def obtener_recorrido(desde_id: int = 0, limite: int = 2000, auto: int = 1) -> list[dict]:
     """Devuelve los puntos con id mayor a `desde_id`, en orden
     cronológico — usado para dibujar el recorrido en vivo trayendo
     solo lo NUEVO en cada consulta, no todo el historial cada vez."""
@@ -70,8 +71,8 @@ def obtener_recorrido(desde_id: int = 0, limite: int = 2000) -> list[dict]:
         with conexion.cursor() as cursor:
             cursor.execute(
                 "SELECT id, lat, lon FROM coordenadas "
-                "WHERE id > %s ORDER BY id ASC LIMIT %s",
-                (desde_id, limite),
+                "WHERE id > %s AND auto = %s ORDER BY id ASC LIMIT %s",
+                (desde_id, auto, limite),
             )
             filas = cursor.fetchall()
     finally:
