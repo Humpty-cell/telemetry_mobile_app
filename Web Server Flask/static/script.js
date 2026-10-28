@@ -19,9 +19,19 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(mapa);
 
-const marcador = L.marker([10.9878, -74.7889]).addTo(mapa);
+function iconoColor(color) {
+    return L.divIcon({
+        className: '',
+        html: '<div style="width:22px;height:22px;border-radius:50%;background:' + color +
+              ';border:3px solid #fff;box-shadow:0 0 4px rgba(0,0,0,.6)"></div>',
+        iconSize: [22, 22], iconAnchor: [11, 11]
+    });
+}
+const COLOR_AUTO1 = '#1D9E75';   // cambia aqui el color del auto 1
+const COLOR_AUTO2 = '#3B7DDD';   // cambia aqui el color del auto 2
+const marcador = L.marker([10.9878, -74.7889], { icon: iconoColor(COLOR_AUTO1) }).addTo(mapa);
 const linea = L.polyline([], { color: '#1D9E75', weight: 4 }).addTo(mapa);
-const marcador2 = L.marker([10.9878, -74.7889], { opacity: 0 }).addTo(mapa);
+const marcador2 = L.marker([10.9878, -74.7889], { opacity: 0, icon: iconoColor(COLOR_AUTO2) }).addTo(mapa);
 const linea2 = L.polyline([], { color: '#3B7DDD', weight: 4 }).addTo(mapa);
 let ultimoId2 = 0;
 let puntos2 = [];
