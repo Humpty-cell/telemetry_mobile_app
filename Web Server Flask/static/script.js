@@ -531,7 +531,7 @@ if (panelHist) {
 
 // ---------- Baches ----------
 const COLORES_BACHE = {1:'#FFC107', 2:'#FF9800', 3:'#F44336', 4:'#9C27B0', 5:'#607D8B'};
-const NOMBRES_BACHE = {1:'Tipo 1', 2:'Tipo 2', 3:'Tipo 3', 4:'Tipo 4', 5:'Tipo 5'}; // pon tus clases
+const NOMBRES_BACHE = {1:'Longitudinal crack', 2:'Transverse crack', 3:'Alligator crack', 4:'Other corruption', 5:'Pothole'};
 const COLOR_BORDE = {1: COLOR_AUTO1, 2: COLOR_AUTO2};
 const capaBachesVivo = L.layerGroup().addTo(mapa);
 const capaBachesHist = L.layerGroup().addTo(mapa);
@@ -571,7 +571,34 @@ async function cargarBachesRuta(datos) {
 }
 
 
+// ---------- Leyenda de baches ----------
+function construirLeyenda() {
+    const cont = $('lista-leyenda');
+    if (!cont) return;
+    cont.innerHTML = Object.keys(COLORES_BACHE).map(k =>
+        `<div class="item">
+            <span class="punto" style="background:${COLORES_BACHE[k]}"></span>
+            <span><b>${k}</b> &middot; ${NOMBRES_BACHE[k]}</span>
+        </div>`
+    ).join('');
+}
 
+function cerrarLeyenda() {
+    const l = $('leyenda-baches');
+    if (l) l.classList.add('oculta');
+}
+
+function abrirLeyenda() {
+    const l = $('leyenda-baches');
+    if (l) l.classList.remove('oculta');
+}
+
+construirLeyenda();
+const leyendaEl = $('leyenda-baches');
+if (leyendaEl) {
+    L.DomEvent.disableClickPropagation(leyendaEl);
+    L.DomEvent.disableScrollPropagation(leyendaEl);
+}
 
 
 // ---------- Inicio ----------

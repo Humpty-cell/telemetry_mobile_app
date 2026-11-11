@@ -214,3 +214,53 @@ html, body {
     background: #6A5ACD;
     color: white;
 }
+
+#leyenda-baches {
+    position: fixed;
+    bottom: 24px;
+    left: 72px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
+    padding: 12px 36px 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+#leyenda-baches.oculta {
+    display: none;
+}
+
+#cerrar-leyenda {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #555;
+}
+
+#leyenda-baches .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#leyenda-baches .punto {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+}
+
+#btn-leyenda {
+    background: #6A5ACD;
+    color: white;
+}
