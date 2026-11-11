@@ -142,7 +142,12 @@ def historico_rutas():
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
     return jsonify(rutas)
 
-
+@app.route("/baches")
+def baches():
+    try:
+        return jsonify(db.obtener_baches())
+    except Exception as error:
+        return jsonify({"error": f"Error en base de datos: {error}"}), 500
 
 
 @app.route("/")

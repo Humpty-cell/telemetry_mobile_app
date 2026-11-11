@@ -517,6 +517,33 @@ if (panelHist) {
     L.DomEvent.disableScrollPropagation(panelHist);
 }
 
+// ---------- Baches ----------
+const COLORES_BACHE = {1:'#FFC107', 2:'#FF9800', 3:'#F44336', 4:'#9C27B0', 5:'#607D8B'};
+const NOMBRES_BACHE = {1:'Tipo 1', 2:'Tipo 2', 3:'Tipo 3', 4:'Tipo 4', 5:'Tipo 5'}; // pon tus clases
+const capaBaches = L.layerGroup().addTo(mapa);
+const bachesVistos = new Set();
+
+async function cargarBaches() {
+    try {
+        const r = await fetch('/baches', { cache: 'no-store' });
+        if (!r.ok) return;
+        const datos = await r.json();
+        if (!Array.isArray(datos)) return;
+        datos.forEach(b => {
+            if (bachesVistos.has(b.id)) return;
+            bachesVistos.add(b.id);
+            L.circleMarker([b.lat, b.lon], {
+                radius: 8, color: '#fff', weight: 2,
+                fillColor: COLORES_BACHE[b.tipo], fillOpacity: 0.9
+            }).bindPopup(`<b>${NOMBRES_BACHE[b.tipo]}</b><br>${b.hora}`)
+              .addTo(capaBaches);
+        });
+    } catch (e) { console.error('baches:', e); }
+}
+setInterval(cargarBaches, 5000);
+cargarBaches();
+
+
 // ---------- Inicio ----------
 async function inicializar() {
     try {

@@ -228,3 +228,17 @@ def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, li
         ultimo, ult_auto = ts, auto
     rutas.sort(key=lambda r: r[0]["hora"])
     return rutas
+
+def obtener_baches(limite: int = 5000) -> list[dict]:
+    conexion = conectar_bd()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, lat, lon, auto, ts_fix FROM coordenadas "
+                "WHERE auto >= 3 ORDER BY id DESC LIMIT %s", (limite,))
+            filas = cursor.fetchall()
+    finally:
+        conexion.close()
+    return [{"id": i, "lat": la, "lon": lo, "tipo": a - 2,
+             "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S")}
+            for i, la, lo, a, ts in filas]
