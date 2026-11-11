@@ -159,6 +159,7 @@ def baches():
     except Exception as error:
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
 
+    
 @app.route("/")
 def pagina_principal():
     titulo_pestana = os.environ.get("TITULO_PESTANA", "GPS Tracker")

@@ -551,7 +551,6 @@ async function obtenerBaches(params) {
     return Array.isArray(d) ? d : [];
 }
 
-// En vivo: solo baches nuevos desde que se cargó la página / se borró el trazado
 async function cargarBachesVivo() {
     const nuevos = await obtenerBaches('desde_id=' + ultimoIdBache);
     nuevos.forEach(b => pintarBache(b, capaBachesVivo));
@@ -563,7 +562,6 @@ async function iniciarBachesVivo() {
     ultimoIdBache = todos.length ? todos[todos.length - 1].id : 0;
 }
 
-// Histórico: baches del auto de la ruta, dentro del rango de la ruta
 async function cargarBachesRuta(datos) {
     const f = (h) => h.replace(' ', 'T');
     const bs = await obtenerBaches(
@@ -571,6 +569,10 @@ async function cargarBachesRuta(datos) {
     capaBachesHist.clearLayers();
     bs.forEach(b => pintarBache(b, capaBachesHist));
 }
+
+
+
+
 
 // ---------- Inicio ----------
 async function inicializar() {
