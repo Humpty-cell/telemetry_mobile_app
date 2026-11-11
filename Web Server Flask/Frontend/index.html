@@ -19,8 +19,13 @@
         <p class="fila"><span>Fecha: <span id="fecha2">-</span></span><span>Hora: <span id="hora2">-</span></span></p><button id="btn-pausa" onclick="togglePausa()">Pausar</button>
         <button id="btn-borrar" onclick="borrarTrazado()">Borrar trazado</button>
         <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
-        
-
+         <button id="btn-leyenda" onclick="abrirLeyenda()" title="Leyenda de baches" aria-label="Leyenda de baches">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+                <circle cx="12" cy="7.5" r="1.4" fill="white"/>
+                <path d="M12 11 L12 17.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
     </div>
 
     <div id="panel-historico">
@@ -39,6 +44,11 @@
 	           style="width:100%; cursor:pointer;">
 	    <div id="hora-slider" style="text-align:center; font-size:0.75rem; color:#444; margin-top:4px;"></div>
 	</div>
+    </div>
+        <div id="leyenda-baches">
+        <button id="cerrar-leyenda" onclick="cerrarLeyenda()" title="Cerrar">&times;</button>
+        <strong>Códigos de baches</strong>
+        <div id="lista-leyenda"></div>
     </div>
     <button id="btn-centrar" onclick="centrarUbicacion()" title="Centrar ubicación">𖦏</button>
     <button id="btn-centrar2" onclick="centrarUbicacion2()" title="Centrar auto 2">𖦏</button>
