@@ -229,16 +229,25 @@ def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, li
     rutas.sort(key=lambda r: r[0]["hora"])
     return rutas
 
-def obtener_baches(limite: int = 5000) -> list[dict]:
+def obtener_baches(desde_id=0, desde_ms=None, hasta_ms=None, carro=None, limite=5000):
+    sql = "SELECT id, lat, lon, auto, ts_fix FROM coordenadas WHERE auto >= 11 AND id > %s"
+    params = [desde_id]
+    if desde_ms is not None:
+        sql += " AND ts_fix BETWEEN %s AND %s"
+        params += [desde_ms, hasta_ms]
+    if carro:
+        sql += " AND auto BETWEEN %s AND %s"
+        params += [carro * 10 + 1, carro * 10 + 5]
+    sql += " ORDER BY id ASC LIMIT %s"
+    params.append(limite)
+
     conexion = conectar_bd()
     try:
         with conexion.cursor() as cursor:
-            cursor.execute(
-                "SELECT id, lat, lon, auto, ts_fix FROM coordenadas "
-                "WHERE auto >= 3 ORDER BY id DESC LIMIT %s", (limite,))
+            cursor.execute(sql, params)
             filas = cursor.fetchall()
     finally:
         conexion.close()
-    return [{"id": i, "lat": la, "lon": lo, "tipo": a - 2,
+    return [{"id": i, "lat": la, "lon": lo, "carro": a // 10, "tipo": a % 10,
              "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S")}
             for i, la, lo, a, ts in filas]

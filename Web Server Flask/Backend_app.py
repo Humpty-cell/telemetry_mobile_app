@@ -144,11 +144,20 @@ def historico_rutas():
 
 @app.route("/baches")
 def baches():
+    from datetime import datetime
     try:
-        return jsonify(db.obtener_baches())
+        desde_id = request.args.get("desde_id", default=0, type=int)
+        carro = request.args.get("carro", type=int)
+        d, h = request.args.get("desde"), request.args.get("hasta")
+        d_ms = h_ms = None
+        if d and h:
+            d_ms = int(datetime.fromisoformat(d).replace(tzinfo=db.ZONA_LOCAL).timestamp() * 1000)
+            h_ms = int(datetime.fromisoformat(h).replace(tzinfo=db.ZONA_LOCAL).timestamp() * 1000)
+        return jsonify(db.obtener_baches(desde_id, d_ms, h_ms, carro))
+    except ValueError:
+        return jsonify({"error": "Parámetros inválidos"}), 400
     except Exception as error:
         return jsonify({"error": f"Error en base de datos: {error}"}), 500
-
 
 @app.route("/")
 def pagina_principal():
