@@ -19,11 +19,12 @@
         <p class="fila"><span>Fecha: <span id="fecha2">-</span></span><span>Hora: <span id="hora2">-</span></span></p><button id="btn-pausa" onclick="togglePausa()">Pausar</button>
         <button id="btn-borrar" onclick="borrarTrazado()">Borrar trazado</button>
         <button id="btn-historico" onclick="toggleHistorico()">Histórico</button>
-        <button id="btn-leyenda" onclick="abrirLeyenda()" title="Leyenda de baches" aria-label="Leyenda de baches">
-         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <ellipse cx="12" cy="15" rx="9" ry="5" fill="white" fill-opacity="0.35" stroke="white" stroke-width="2"/>
-            <path d="M12 10 L10 4 M17 11 L21 6 M7 11 L3 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
-         </svg>
+         <button id="btn-leyenda" onclick="abrirLeyenda()" title="Leyenda de baches" aria-label="Leyenda de baches">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/>
+                <circle cx="12" cy="7.5" r="1.4" fill="white"/>
+                <path d="M12 11 L12 17.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
         </button>
     </div>
 
