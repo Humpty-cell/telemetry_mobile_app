@@ -69,6 +69,7 @@ const lineaHistorico2 = L.polyline([], { color: '#3B7DDD', weight: 4, dashArray:
 function limpiarHistorico() {
     lineaHistorico.setLatLngs([]);
     lineaHistorico2.setLatLngs([]);
+    capaBachesHist.clearLayers();
 }
 // Reparte los puntos entre las dos líneas según p.auto
 function dibujarHistorico(datos) {
@@ -135,6 +136,7 @@ async function actualizar() {
         await actualizarDato().catch(e => console.error('actual:', e));
         await cargarRecorrido().catch(e => console.error('recorrido:', e));
         await actualizarAuto2().catch(e => console.error('auto2:', e));
+        await cargarBachesVivo().catch(e => console.error('baches:', e));
     } finally {
         actualizando = false;
     }
@@ -157,6 +159,11 @@ async function borrarTrazado() {
         puntos2 = [];
         linea2.setLatLngs([]);
         ultimoId2 = await obtenerUltimoId2();
+
+        // Baches
+        capaBachesVivo.clearLayers();
+        await iniciarBachesVivo();
+        
     } finally {
         actualizando = false;
     }
@@ -299,6 +306,8 @@ function mostrarRuta(datos) {
     slider.value = datos.length - 1;
     horaSlider.textContent = datos[datos.length - 1].hora;
     setDisplay('contenedor-slider', 'block');
+
+    cargarBachesRuta(datos).catch(e => console.error('baches ruta:', e));
 
     slider.oninput = function () {
         const idx = parseInt(slider.value);
@@ -517,6 +526,54 @@ if (panelHist) {
     L.DomEvent.disableScrollPropagation(panelHist);
 }
 
+
+
+
+// ---------- Baches ----------
+const COLORES_BACHE = {1:'#FFC107', 2:'#FF9800', 3:'#F44336', 4:'#9C27B0', 5:'#607D8B'};
+const NOMBRES_BACHE = {1:'Tipo 1', 2:'Tipo 2', 3:'Tipo 3', 4:'Tipo 4', 5:'Tipo 5'}; // pon tus clases
+const COLOR_BORDE = {1: COLOR_AUTO1, 2: COLOR_AUTO2};
+const capaBachesVivo = L.layerGroup().addTo(mapa);
+const capaBachesHist = L.layerGroup().addTo(mapa);
+let ultimoIdBache = 0;
+
+function pintarBache(b, capa) {
+    L.circleMarker([b.lat, b.lon], {
+        radius: 9, color: COLOR_BORDE[b.carro] || '#000', weight: 4,
+        fillColor: COLORES_BACHE[b.tipo], fillOpacity: 0.95
+    }).bindPopup(`<b>${NOMBRES_BACHE[b.tipo]}</b><br>Auto ${b.carro}<br>${b.hora}`).addTo(capa);
+}
+
+async function obtenerBaches(params) {
+    const r = await fetch('/baches?' + params, { cache: 'no-store' });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+}
+
+async function cargarBachesVivo() {
+    const nuevos = await obtenerBaches('desde_id=' + ultimoIdBache);
+    nuevos.forEach(b => pintarBache(b, capaBachesVivo));
+    if (nuevos.length) ultimoIdBache = nuevos[nuevos.length - 1].id;
+}
+
+async function iniciarBachesVivo() {
+    const todos = await obtenerBaches('desde_id=0');
+    ultimoIdBache = todos.length ? todos[todos.length - 1].id : 0;
+}
+
+async function cargarBachesRuta(datos) {
+    const f = (h) => h.replace(' ', 'T');
+    const bs = await obtenerBaches(
+        `carro=${datos[0].auto}&desde=${f(datos[0].hora)}&hasta=${f(datos[datos.length - 1].hora)}`);
+    capaBachesHist.clearLayers();
+    bs.forEach(b => pintarBache(b, capaBachesHist));
+}
+
+
+
+
+
 // ---------- Inicio ----------
 async function inicializar() {
     try {
@@ -538,6 +595,8 @@ async function inicializar() {
 
     const b = $('btn-centrar');
     if (b) b.classList.toggle('activo', seguimientoActivo);
+
+     try { await iniciarBachesVivo(); } catch (e) { console.error('baches init:', e); }
 
     iniciarIntervalo();   // siempre arranca, aunque falle la primera lectura
 }

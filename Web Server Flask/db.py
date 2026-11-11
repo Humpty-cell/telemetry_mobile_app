@@ -90,7 +90,7 @@ def obtener_historico(desde_ms: int, hasta_ms: int, limite: int = 5000) -> list[
         with conexion.cursor() as cursor:
             cursor.execute(
                 "SELECT lat, lon, ts_fix, auto FROM coordenadas "
-                "WHERE ts_fix BETWEEN %s AND %s "
+                "WHERE ts_fix BETWEEN %s AND %s AND auto <= 2"
                 "ORDER BY ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
             )
@@ -124,8 +124,8 @@ def buscar_por_ubicacion(lat_click: float, lon_click: float, radio_metros: float
                         cos(radians(lon) - radians(%s)) +
                         sin(radians(%s)) * sin(radians(lat))
                     )
-                ) <= %s
-                ORDER BY ts_fix ASC
+                ) <= %s AND auto <= 2
+                ORDER BY ts_fix ASC 
                 """,
                 (lat_click, lon_click, lat_click, radio_metros),
             )
@@ -151,7 +151,7 @@ def obtener_historico_total(limite: int = 10000) -> list[dict]:
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix, auto FROM coordenadas ORDER BY ts_fix ASC LIMIT %s",
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas WHERE auto <= 2 ORDER BY ts_fix ASC LIMIT %s",
                 (limite,),
             )
             filas = cursor.fetchall()
@@ -170,7 +170,7 @@ def obtener_historico_desde(desde_ms: int, hasta_ms: int, limite: int = 10000) -
     try:
         with conexion.cursor() as cursor:
             cursor.execute(
-                "SELECT lat, lon, ts_fix, auto FROM coordenadas WHERE ts_fix BETWEEN %s AND %s ORDER BY ts_fix ASC LIMIT %s",
+                "SELECT lat, lon, ts_fix, auto FROM coordenadas WHERE ts_fix BETWEEN %s AND %s AND auto <= 2 ORDER BY ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
             )
             filas = cursor.fetchall()
@@ -210,7 +210,7 @@ def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, li
         with conexion.cursor() as cursor:
             cursor.execute(
                 "SELECT lat, lon, ts_fix, auto FROM coordenadas "
-                "WHERE ts_fix BETWEEN %s AND %s ORDER BY auto, ts_fix ASC LIMIT %s",
+                "WHERE ts_fix BETWEEN %s AND %s AND auto <= 2 ORDER BY auto, ts_fix ASC LIMIT %s",
                 (desde_ms, hasta_ms, limite),
             )
             filas = cursor.fetchall()
@@ -228,3 +228,26 @@ def obtener_historico_rutas(desde_ms: int, hasta_ms: int, pausa_min: int = 5, li
         ultimo, ult_auto = ts, auto
     rutas.sort(key=lambda r: r[0]["hora"])
     return rutas
+
+def obtener_baches(desde_id=0, desde_ms=None, hasta_ms=None, carro=None, limite=5000):
+    sql = "SELECT id, lat, lon, auto, ts_fix FROM coordenadas WHERE auto >= 11 AND id > %s"
+    params = [desde_id]
+    if desde_ms is not None:
+        sql += " AND ts_fix BETWEEN %s AND %s"
+        params += [desde_ms, hasta_ms]
+    if carro:
+        sql += " AND auto BETWEEN %s AND %s"
+        params += [carro * 10 + 1, carro * 10 + 5]
+    sql += " ORDER BY id ASC LIMIT %s"
+    params.append(limite)
+
+    conexion = conectar_bd()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(sql, params)
+            filas = cursor.fetchall()
+    finally:
+        conexion.close()
+    return [{"id": i, "lat": la, "lon": lo, "carro": a // 10, "tipo": a % 10,
+             "hora": datetime.fromtimestamp(ts / 1000, tz=ZONA_LOCAL).strftime("%Y-%m-%d %H:%M:%S")}
+            for i, la, lo, a, ts in filas]
